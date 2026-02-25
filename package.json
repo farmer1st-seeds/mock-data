@@ -1,12 +1,13 @@
 {
   "name": "@farmer1st-seeds/mock-data",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Central mock data for Farmer1st Seeds",
   "files": [
     "dataset.json",
     "changelog.json",
     "validate.mjs",
-    "v*/"
+    "v1.00",
+    "v1.02"
   ],
   "scripts": {
     "validate": "node validate.mjs"

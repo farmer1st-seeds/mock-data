@@ -1,0 +1,33 @@
+{
+  "$meta": {
+    "table": "entities",
+    "description": "Organizations — farms, cooperatives, brands, traders, agencies. Type-specific fields in details object.",
+    "schema": {
+      "id": "string (farm_NNN | coop_NNN | brand_NNN | trader_NNN | agency_NNN)",
+      "type": "enum: farm | cooperative | brand | trader | agency",
+      "name": "string",
+      "description": "string?",
+      "status": "enum: active | suspended",
+      "details": "object — type-specific fields"
+    },
+    "typeSchemas": {
+      "farm": { "region": "string", "size": "number (hectares)", "crops": "string[]" },
+      "cooperative": { "region": "string", "established": "string (YYYY)" },
+      "brand": { "industry": "string", "country": "string" },
+      "trader": { "specialty": "string", "country": "string" },
+      "agency": { "focus": "string", "country": "string" }
+    }
+  },
+  "rows": [
+    { "id": "farm_001", "type": "farm", "name": "Farm A", "status": "active", "details": { "region": "Region 1", "size": 12, "crops": ["coffee", "maize"] } },
+    { "id": "farm_002", "type": "farm", "name": "Farm B", "status": "active", "details": { "region": "Region 1", "size": 8, "crops": ["coffee"] } },
+    { "id": "farm_003", "type": "farm", "name": "Farm C", "status": "active", "details": { "region": "Region 2", "size": 15, "crops": ["tea", "maize"] } },
+    { "id": "farm_004", "type": "farm", "name": "Farm D", "status": "active", "details": { "region": "Region 2", "size": 6, "crops": ["tea"] } },
+    { "id": "farm_005", "type": "farm", "name": "Farm E", "status": "active", "details": { "region": "Region 3", "size": 20, "crops": ["cocoa", "cassava"] } },
+    { "id": "coop_001", "type": "cooperative", "name": "Cooperative Alpha", "status": "active", "details": { "region": "Region 1", "established": "2018" } },
+    { "id": "coop_002", "type": "cooperative", "name": "Cooperative Beta", "status": "active", "details": { "region": "Region 2-3", "established": "2015" } },
+    { "id": "brand_001", "type": "brand", "name": "Brand X", "status": "active", "details": { "industry": "food & beverage", "country": "Switzerland" } },
+    { "id": "trader_001", "type": "trader", "name": "Trader Y", "status": "active", "details": { "specialty": "commodities", "country": "USA" } },
+    { "id": "agency_001", "type": "agency", "name": "Agency Z", "status": "active", "details": { "focus": "agriculture extension", "country": "Kenya" } }
+  ]
+}

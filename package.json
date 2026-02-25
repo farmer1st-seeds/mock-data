@@ -1,0 +1,21 @@
+{
+  "name": "@farmer1st-seeds/mock-data",
+  "version": "1.0.0",
+  "description": "Central mock data for Farmer1st Seeds",
+  "files": [
+    "dataset.json",
+    "changelog.json",
+    "validate.mjs",
+    "v*/"
+  ],
+  "scripts": {
+    "validate": "node validate.mjs"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/farmer1st-seeds/mock-data.git"
+  }
+}

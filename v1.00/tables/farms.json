@@ -1,0 +1,27 @@
+{
+  "$meta": {
+    "table": "farms",
+    "description": "Registered farms with owner and cooperative links",
+    "schema": {
+      "id": "string (farm_NNN)",
+      "name": "string",
+      "ownerId": "string → users.id",
+      "cooperativeId": "string → cooperatives.id",
+      "region": "string",
+      "size": "number (hectares)",
+      "crops": "string[]"
+    }
+  },
+  "rows": [
+    { "id": "farm_001", "name": "Farm A", "ownerId": "usr_003", "cooperativeId": "coop_001", "region": "Region 1", "size": 12, "crops": ["coffee", "maize"] },
+    { "id": "farm_002", "name": "Farm B", "ownerId": "usr_004", "cooperativeId": "coop_001", "region": "Region 1", "size": 8, "crops": ["coffee"] },
+    { "id": "farm_003", "name": "Farm C", "ownerId": "usr_005", "cooperativeId": "coop_002", "region": "Region 2", "size": 15, "crops": ["tea", "maize"] },
+    { "id": "farm_004", "name": "Farm D", "ownerId": "usr_007", "cooperativeId": "coop_002", "region": "Region 2", "size": 6, "crops": ["tea"] },
+    { "id": "farm_005", "name": "Farm E", "ownerId": "usr_008", "cooperativeId": "coop_003", "region": "Region 3", "size": 20, "crops": ["cocoa", "cassava"] },
+    { "id": "farm_006", "name": "Farm F", "ownerId": "usr_010", "cooperativeId": "coop_004", "region": "Region 4", "size": 10, "crops": ["sugarcane"] },
+    { "id": "farm_007", "name": "Farm G", "ownerId": "usr_012", "cooperativeId": "coop_004", "region": "Region 4", "size": 18, "crops": ["sugarcane", "maize"] },
+    { "id": "farm_008", "name": "Farm H", "ownerId": "usr_013", "cooperativeId": "coop_005", "region": "Region 5", "size": 25, "crops": ["wheat", "barley"] },
+    { "id": "farm_009", "name": "Farm I", "ownerId": "usr_015", "cooperativeId": "coop_002", "region": "Region 2", "size": 9, "crops": ["tea", "coffee"] },
+    { "id": "farm_010", "name": "Farm J", "ownerId": "usr_003", "cooperativeId": "coop_001", "region": "Region 1", "size": 5, "crops": ["beans"] }
+  ]
+}

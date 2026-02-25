@@ -1,0 +1,32 @@
+[
+  {
+    "version": "1.00",
+    "date": "2026-02-06",
+    "breaking": false,
+    "description": "Initial dataset with users, farms, and cooperatives",
+    "changes": [
+      "Added users table (15 rows) — farmers, traders, managers, admin",
+      "Added farms table (10 rows) — linked to users and cooperatives",
+      "Added cooperatives table (5 rows)",
+      "Added public_base overlays for all tables",
+      "Added public_kenya overlay for users and farms",
+      "Added private_nestle overlay for cooperatives"
+    ]
+  },
+  {
+    "version": "1.02",
+    "date": "2026-02-06",
+    "breaking": true,
+    "description": "Entity-membership model replacing hardcoded relationships",
+    "changes": [
+      "BREAKING: Replaced farms and cooperatives tables with unified entities table",
+      "BREAKING: Removed role and cooperativeId from users — roles now come from memberships",
+      "BREAKING: Replaced hardcoded FKs (ownerId, cooperativeId) with universal memberships table",
+      "Added entities table (10 rows) — farms, cooperatives, brands, traders, agencies",
+      "Added memberships table (26 rows) — user↔entity, entity↔entity, user↔user relationships",
+      "4 progressive roles: member, viewer, editor, admin",
+      "Cascading visibility through membership graph (brand → coop → farms)",
+      "Added entities overlays (public_base, public_kenya, private_nestle)"
+    ]
+  }
+]

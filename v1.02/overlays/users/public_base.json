@@ -1,0 +1,25 @@
+{
+  "$meta": {
+    "table": "users",
+    "overlay": "base",
+    "visibility": "public",
+    "description": "Realistic names and emails matching membership roles"
+  },
+  "overrides": {
+    "usr_001": { "firstName": "Sophie", "lastName": "Martin", "email": "sophie.martin@globalfoods.com", "phone": "+41794000001" },
+    "usr_002": { "firstName": "Kwame", "lastName": "Asante", "email": "kwame@highlandscoop.org", "phone": "+233244000001" },
+    "usr_003": { "firstName": "Amina", "lastName": "Osei", "email": "amina.osei@gmail.com", "phone": "+233244000002" },
+    "usr_004": { "firstName": "Jean", "lastName": "Dupont", "email": "jean.dupont@gmail.com", "phone": "+225070000001" },
+    "usr_005": { "firstName": "Fatima", "lastName": "Hassan", "email": "fatima.hassan@gmail.com", "phone": "+254712000001" },
+    "usr_006": { "firstName": "David", "lastName": "Osei", "email": "david.osei@gmail.com", "phone": "+233244000003" },
+    "usr_007": { "firstName": "Grace", "lastName": "Dupont", "email": "grace.dupont@gmail.com", "phone": "+225070000002" },
+    "usr_008": { "firstName": "Ibrahim", "lastName": "Koné", "email": "ibrahim@lakeregion.org", "phone": "+225070000003" },
+    "usr_009": { "firstName": "Marie", "lastName": "Diallo", "email": "marie.diallo@gmail.com", "phone": "+221770000001" },
+    "usr_010": { "firstName": "Samuel", "lastName": "Okafor", "email": "samuel.okafor@gmail.com", "phone": "+234803000001" },
+    "usr_011": { "firstName": "Aisha", "lastName": "Bello", "email": "aisha.bello@globalfoods.com", "phone": "+41794000002" },
+    "usr_012": { "firstName": "Peter", "lastName": "Mwangi", "email": "peter.mwangi@gmail.com", "phone": "+254712000002" },
+    "usr_013": { "firstName": "Cécile", "lastName": "Ndiaye", "email": "cecile@continentalcommodities.com", "phone": "+221770000002" },
+    "usr_014": { "firstName": "Joseph", "lastName": "Kamau", "email": "joseph.kamau@agriext.gov.ke", "phone": "+254712000003" },
+    "usr_015": { "firstName": "Esther", "lastName": "Wanjiku", "email": "esther.wanjiku@gmail.com", "phone": "+254712000004" }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$meta": {
+    "version": "1.02",
+    "description": "Entity-membership model — users, entities, memberships",
+    "updatedAt": "2026-02-06"
+  },
+  "tables": ["users", "entities", "memberships"],
+  "relations": [
+    { "from": "memberships.sourceId", "to": "users.id", "type": "many-to-one", "when": { "sourceType": "user" } },
+    { "from": "memberships.sourceId", "to": "entities.id", "type": "many-to-one", "when": { "sourceType": "entity" } },
+    { "from": "memberships.targetId", "to": "users.id", "type": "many-to-one", "when": { "targetType": "user" } },
+    { "from": "memberships.targetId", "to": "entities.id", "type": "many-to-one", "when": { "targetType": "entity" } }
+  ],
+  "overlays": ["public_base", "public_kenya", "private_nestle"]
+}

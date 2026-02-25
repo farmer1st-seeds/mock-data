@@ -1,0 +1,30 @@
+{
+  "$meta": {
+    "table": "users",
+    "description": "Platform users — identity only, roles defined through memberships",
+    "schema": {
+      "id": "string (usr_NNN)",
+      "firstName": "string",
+      "lastName": "string",
+      "email": "string",
+      "phone": "string"
+    }
+  },
+  "rows": [
+    { "id": "usr_001", "firstName": "User", "lastName": "One", "email": "user1@example.com", "phone": "+10000000001" },
+    { "id": "usr_002", "firstName": "User", "lastName": "Two", "email": "user2@example.com", "phone": "+10000000002" },
+    { "id": "usr_003", "firstName": "User", "lastName": "Three", "email": "user3@example.com", "phone": "+10000000003" },
+    { "id": "usr_004", "firstName": "User", "lastName": "Four", "email": "user4@example.com", "phone": "+10000000004" },
+    { "id": "usr_005", "firstName": "User", "lastName": "Five", "email": "user5@example.com", "phone": "+10000000005" },
+    { "id": "usr_006", "firstName": "User", "lastName": "Six", "email": "user6@example.com", "phone": "+10000000006" },
+    { "id": "usr_007", "firstName": "User", "lastName": "Seven", "email": "user7@example.com", "phone": "+10000000007" },
+    { "id": "usr_008", "firstName": "User", "lastName": "Eight", "email": "user8@example.com", "phone": "+10000000008" },
+    { "id": "usr_009", "firstName": "User", "lastName": "Nine", "email": "user9@example.com", "phone": "+10000000009" },
+    { "id": "usr_010", "firstName": "User", "lastName": "Ten", "email": "user10@example.com", "phone": "+10000000010" },
+    { "id": "usr_011", "firstName": "User", "lastName": "Eleven", "email": "user11@example.com", "phone": "+10000000011" },
+    { "id": "usr_012", "firstName": "User", "lastName": "Twelve", "email": "user12@example.com", "phone": "+10000000012" },
+    { "id": "usr_013", "firstName": "User", "lastName": "Thirteen", "email": "user13@example.com", "phone": "+10000000013" },
+    { "id": "usr_014", "firstName": "User", "lastName": "Fourteen", "email": "user14@example.com", "phone": "+10000000014" },
+    { "id": "usr_015", "firstName": "User", "lastName": "Fifteen", "email": "user15@example.com", "phone": "+10000000015" }
+  ]
+}

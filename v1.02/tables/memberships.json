@@ -1,0 +1,54 @@
+{
+  "$meta": {
+    "table": "memberships",
+    "description": "Universal relationships — user↔entity, entity↔entity, user↔user. Direction: source has roles within target.",
+    "schema": {
+      "id": "string (mbr_NNN)",
+      "sourceType": "enum: user | entity",
+      "sourceId": "string → users.id | entities.id",
+      "targetType": "enum: user | entity",
+      "targetId": "string → users.id | entities.id",
+      "roles": "string[] — member | viewer | editor | admin",
+      "status": "enum: active | suspended | pending"
+    },
+    "roleProgression": "member < viewer < editor < admin"
+  },
+  "rows": [
+    { "id": "mbr_001", "sourceType": "user", "sourceId": "usr_003", "targetType": "entity", "targetId": "farm_001", "roles": ["admin"], "status": "active" },
+    { "id": "mbr_002", "sourceType": "user", "sourceId": "usr_004", "targetType": "entity", "targetId": "farm_002", "roles": ["admin"], "status": "active" },
+    { "id": "mbr_003", "sourceType": "user", "sourceId": "usr_005", "targetType": "entity", "targetId": "farm_003", "roles": ["admin"], "status": "active" },
+    { "id": "mbr_004", "sourceType": "user", "sourceId": "usr_009", "targetType": "entity", "targetId": "farm_004", "roles": ["admin"], "status": "active" },
+    { "id": "mbr_005", "sourceType": "user", "sourceId": "usr_010", "targetType": "entity", "targetId": "farm_005", "roles": ["admin"], "status": "active" },
+
+    { "id": "mbr_006", "sourceType": "user", "sourceId": "usr_012", "targetType": "entity", "targetId": "farm_003", "roles": ["editor"], "status": "active" },
+
+    { "id": "mbr_007", "sourceType": "user", "sourceId": "usr_006", "targetType": "entity", "targetId": "farm_001", "roles": ["viewer"], "status": "active" },
+    { "id": "mbr_008", "sourceType": "user", "sourceId": "usr_007", "targetType": "entity", "targetId": "farm_002", "roles": ["viewer"], "status": "active" },
+
+    { "id": "mbr_009", "sourceType": "user", "sourceId": "usr_015", "targetType": "entity", "targetId": "farm_001", "roles": ["member"], "status": "active" },
+
+    { "id": "mbr_010", "sourceType": "user", "sourceId": "usr_006", "targetType": "user", "targetId": "usr_003", "roles": ["member"], "status": "active" },
+    { "id": "mbr_011", "sourceType": "user", "sourceId": "usr_007", "targetType": "user", "targetId": "usr_004", "roles": ["member"], "status": "active" },
+
+    { "id": "mbr_012", "sourceType": "user", "sourceId": "usr_002", "targetType": "entity", "targetId": "coop_001", "roles": ["admin"], "status": "active" },
+    { "id": "mbr_013", "sourceType": "user", "sourceId": "usr_008", "targetType": "entity", "targetId": "coop_002", "roles": ["admin"], "status": "active" },
+
+    { "id": "mbr_014", "sourceType": "entity", "sourceId": "farm_001", "targetType": "entity", "targetId": "coop_001", "roles": ["member"], "status": "active" },
+    { "id": "mbr_015", "sourceType": "entity", "sourceId": "farm_002", "targetType": "entity", "targetId": "coop_001", "roles": ["member"], "status": "active" },
+    { "id": "mbr_016", "sourceType": "entity", "sourceId": "farm_003", "targetType": "entity", "targetId": "coop_001", "roles": ["member"], "status": "active" },
+    { "id": "mbr_017", "sourceType": "entity", "sourceId": "farm_004", "targetType": "entity", "targetId": "coop_002", "roles": ["member"], "status": "active" },
+    { "id": "mbr_018", "sourceType": "entity", "sourceId": "farm_005", "targetType": "entity", "targetId": "coop_002", "roles": ["member"], "status": "active" },
+
+    { "id": "mbr_019", "sourceType": "entity", "sourceId": "coop_001", "targetType": "entity", "targetId": "brand_001", "roles": ["member"], "status": "active" },
+    { "id": "mbr_020", "sourceType": "entity", "sourceId": "coop_002", "targetType": "entity", "targetId": "brand_001", "roles": ["member"], "status": "active" },
+
+    { "id": "mbr_021", "sourceType": "entity", "sourceId": "brand_001", "targetType": "entity", "targetId": "coop_001", "roles": ["viewer"], "status": "active" },
+    { "id": "mbr_022", "sourceType": "entity", "sourceId": "brand_001", "targetType": "entity", "targetId": "coop_002", "roles": ["viewer"], "status": "active" },
+
+    { "id": "mbr_023", "sourceType": "user", "sourceId": "usr_001", "targetType": "entity", "targetId": "brand_001", "roles": ["admin"], "status": "active" },
+    { "id": "mbr_024", "sourceType": "user", "sourceId": "usr_011", "targetType": "entity", "targetId": "brand_001", "roles": ["viewer"], "status": "active" },
+
+    { "id": "mbr_025", "sourceType": "user", "sourceId": "usr_013", "targetType": "entity", "targetId": "trader_001", "roles": ["admin"], "status": "active" },
+    { "id": "mbr_026", "sourceType": "user", "sourceId": "usr_014", "targetType": "entity", "targetId": "agency_001", "roles": ["admin"], "status": "active" }
+  ]
+}

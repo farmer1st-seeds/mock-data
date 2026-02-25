@@ -1,0 +1,262 @@
+#!/usr/bin/env node
+/**
+ * Validate mock data quality.
+ * Run: node validate.mjs                          (validate latest mock version)
+ *      node validate.mjs --version 1.00           (validate specific version)
+ *      node validate.mjs --seed-dir /path/to/data (validate a seed's data copy)
+ */
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { resolve, join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+// Parse args
+const args = process.argv.slice(2)
+const seedDirFlag = args.indexOf('--seed-dir')
+const seedDirPath = seedDirFlag !== -1 ? args[seedDirFlag + 1] : null
+const versionFlag = args.indexOf('--version')
+const versionArg = versionFlag !== -1 ? args[versionFlag + 1] : null
+
+const mockDir = resolve(__dirname)
+const datasetPath = join(mockDir, 'dataset.json')
+
+if (!existsSync(datasetPath)) {
+  console.error('dataset.json not found')
+  process.exit(1)
+}
+
+const dataset = JSON.parse(readFileSync(datasetPath, 'utf8'))
+
+// Resolve data directory
+let dataDir
+let label
+if (seedDirPath) {
+  dataDir = resolve(seedDirPath)
+  label = `seed data at ${dataDir}`
+} else {
+  const version = versionArg ?? dataset.$meta.version
+  dataDir = join(mockDir, `v${version}`)
+  label = `mock v${version}`
+}
+
+if (!existsSync(dataDir)) {
+  console.error(`Data directory not found: ${dataDir}`)
+  process.exit(1)
+}
+
+// Colors
+const green = (s) => `\x1b[32m${s}\x1b[0m`
+const red = (s) => `\x1b[31m${s}\x1b[0m`
+const dim = (s) => `\x1b[90m${s}\x1b[0m`
+const bold = (s) => `\x1b[1m${s}\x1b[0m`
+
+console.log(bold(`\nValidating ${label}...\n`))
+
+const passed = []
+const failed = []
+
+// Load tables
+const tablesDir = join(dataDir, 'tables')
+if (!existsSync(tablesDir)) {
+  console.error(red('tables/ directory not found'))
+  process.exit(1)
+}
+
+const tables = {}
+const tableFiles = readdirSync(tablesDir).filter(f => f.endsWith('.json'))
+for (const file of tableFiles) {
+  const data = JSON.parse(readFileSync(join(tablesDir, file), 'utf8'))
+  tables[file.replace('.json', '')] = data
+}
+
+// --- Check 1: Dataset consistency ---
+{
+  const errors = []
+  for (const table of dataset.tables) {
+    if (!tables[table]) {
+      errors.push(`Table "${table}" listed in dataset.json but no file found`)
+    }
+  }
+  for (const name of Object.keys(tables)) {
+    if (!dataset.tables.includes(name)) {
+      errors.push(`File tables/${name}.json exists but not listed in dataset.json`)
+    }
+  }
+  report('Dataset consistency', errors)
+}
+
+// --- Check 2: Schema completeness ---
+{
+  const errors = []
+  for (const [name, table] of Object.entries(tables)) {
+    const schemaFields = Object.keys(table.$meta?.schema || {})
+    if (schemaFields.length === 0) {
+      errors.push(`${name}: no schema in $meta`)
+      continue
+    }
+    for (let i = 0; i < table.rows.length; i++) {
+      const row = table.rows[i]
+      for (const field of schemaFields) {
+        const isNullable = (table.$meta.schema[field] || '').includes('?')
+        if (!(field in row) && !isNullable) {
+          errors.push(`${name} row ${row.id || i}: missing "${field}"`)
+        }
+      }
+    }
+  }
+  report('Schema completeness', errors)
+}
+
+// --- Check 3: ID uniqueness ---
+{
+  const errors = []
+  for (const [name, table] of Object.entries(tables)) {
+    const ids = new Set()
+    for (const row of table.rows) {
+      if (!row.id) {
+        errors.push(`${name}: row without "id" field`)
+        continue
+      }
+      if (ids.has(row.id)) errors.push(`${name}: duplicate "${row.id}"`)
+      ids.add(row.id)
+    }
+  }
+  report('ID uniqueness', errors)
+}
+
+// --- Check 4: Foreign key integrity ---
+{
+  const errors = []
+  for (const rel of dataset.relations) {
+    const [fromTable, fromField] = rel.from.split('.')
+    const [toTable, toField] = rel.to.split('.')
+
+    if (!tables[fromTable]) {
+      errors.push(`Relation ${rel.from} → ${rel.to}: table "${fromTable}" not loaded`)
+      continue
+    }
+    if (!tables[toTable]) {
+      errors.push(`Relation ${rel.from} → ${rel.to}: table "${toTable}" not loaded`)
+      continue
+    }
+
+    const validIds = new Set(tables[toTable].rows.map(r => r[toField]))
+
+    for (const row of tables[fromTable].rows) {
+      // Skip rows that don't match the when condition (polymorphic FKs)
+      if (rel.when) {
+        const matches = Object.entries(rel.when).every(([k, v]) => row[k] === v)
+        if (!matches) continue
+      }
+
+      const value = row[fromField]
+      if (value === null || value === undefined) {
+        if (!rel.nullable) {
+          errors.push(`${fromTable}.${fromField} row ${row.id}: null but not nullable`)
+        }
+        continue
+      }
+      if (!validIds.has(value)) {
+        errors.push(`${fromTable}.${fromField} row ${row.id}: "${value}" not found in ${toTable}`)
+      }
+    }
+  }
+  report('Foreign key integrity', errors)
+}
+
+// --- Check 5: Relations consistency ---
+{
+  const errors = []
+  for (const rel of dataset.relations) {
+    const [fromTable, fromField] = rel.from.split('.')
+    const [toTable, toField] = rel.to.split('.')
+
+    if (tables[fromTable]) {
+      const schema = tables[fromTable].$meta?.schema || {}
+      if (!schema[fromField]) {
+        errors.push(`Relation field "${fromField}" not in ${fromTable} schema`)
+      }
+    }
+    if (tables[toTable]) {
+      const schema = tables[toTable].$meta?.schema || {}
+      if (!schema[toField]) {
+        errors.push(`Relation field "${toField}" not in ${toTable} schema`)
+      }
+    }
+  }
+  report('Relations consistency', errors)
+}
+
+// --- Check 6: Overlay validity ---
+{
+  const errors = []
+  const overlaysDir = join(dataDir, 'overlays')
+  if (existsSync(overlaysDir)) {
+    for (const entry of readdirSync(overlaysDir, { withFileTypes: true }).filter(e => e.isDirectory())) {
+      const tableName = entry.name
+      const tableOverlayDir = join(overlaysDir, tableName)
+
+      for (const file of readdirSync(tableOverlayDir).filter(f => f.endsWith('.json'))) {
+        const overlayData = JSON.parse(readFileSync(join(tableOverlayDir, file), 'utf8'))
+        const overlayName = file.replace('.json', '')
+
+        if (overlayName.startsWith('public_') && overlayData.$meta.visibility !== 'public') {
+          errors.push(`${tableName}/${file}: prefix says public, $meta says "${overlayData.$meta.visibility}"`)
+        }
+        if (overlayName.startsWith('private_') && overlayData.$meta.visibility !== 'private') {
+          errors.push(`${tableName}/${file}: prefix says private, $meta says "${overlayData.$meta.visibility}"`)
+        }
+
+        if (overlayData.$meta.visibility === 'private' && !overlayData.$meta.clients?.length) {
+          errors.push(`${tableName}/${file}: private overlay missing clients[]`)
+        }
+
+        if (tables[tableName]) {
+          const validIds = new Set(tables[tableName].rows.map(r => r.id))
+          for (const id of Object.keys(overlayData.overrides || {})) {
+            if (!validIds.has(id)) {
+              errors.push(`${tableName}/${file}: override "${id}" not in base table`)
+            }
+          }
+        }
+
+        if (overlayData.$meta.table !== tableName) {
+          errors.push(`${tableName}/${file}: $meta.table="${overlayData.$meta.table}" but in ${tableName}/`)
+        }
+      }
+    }
+  }
+  report('Overlay validity', errors)
+}
+
+// --- Summary ---
+console.log('')
+const total = passed.length + failed.length
+const failCount = failed.length
+if (failCount === 0) {
+  console.log(green(`All ${total} checks passed.`))
+} else {
+  console.log(red(`${failCount}/${total} checks failed.`))
+}
+console.log('')
+
+process.exit(failCount > 0 ? 1 : 0)
+
+// --- Helpers ---
+
+function report(name, errors) {
+  if (errors.length === 0) {
+    console.log(`  ${green('✓')} ${name}`)
+    passed.push(name)
+  } else {
+    console.log(`  ${red('✗')} ${name}`)
+    for (const e of errors.slice(0, 10)) {
+      console.log(`    ${dim('→')} ${e}`)
+    }
+    if (errors.length > 10) {
+      console.log(`    ${dim(`... and ${errors.length - 10} more`)}`)
+    }
+    failed.push({ check: name, errors })
+  }
+}

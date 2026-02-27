@@ -1,6 +1,6 @@
 {
   "name": "@farmer1st-seeds/mock-data",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Central mock data for Farmer1st Seeds",
   "files": [
     "dataset.json",

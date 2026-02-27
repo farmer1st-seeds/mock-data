@@ -92,29 +92,24 @@ mock-data/
   docs/                 # Detailed documentation (repo-only, not published)
   v1.00/                # Version 1.00 (frozen — old model)
     tables/
-    overlays/
+    checksums.json
   v1.02/                # Version 1.02 (current — entity-membership model)
     tables/
       users.json
       entities.json
       memberships.json
-    overlays/
-      users/
-        public_base.json
-        public_kenya.json
-      entities/
-        public_base.json
-        public_kenya.json
-        private_nestle.json
+    checksums.json
 ```
+
+**Note**: Overlays have moved to the platform repo (`@farmer1st-seeds/dev-platform`). This package only contains tables and checksums.
 
 ## Versioning
 
 Versions use **x.xx format** (2 decimal places): `1.00`, `1.01`, `1.02`, ..., `2.00`.
 
 - `dataset.json.$meta.version` points to the **latest** version (string, e.g. `"1.02"`)
-- Each version lives in `v{x.xx}/` with its own tables and overlays
-- Seeds track which version they're using in `db/_dataset.json`
+- Each version lives in `v{x.xx}/` with its own tables and checksums
+- Seeds track which version they're using via `mockData` in `seed.manifest.ts`
 - Seeds can pin to any available version or upgrade to latest
 - Minor bumps (`1.02` -> `1.03`): additive changes — new rows, new overlays, new fields
 - Major bumps (`1.xx` -> `2.00`): breaking changes — removed rows, changed IDs, restructured tables
@@ -133,44 +128,20 @@ Seeds on v1.02 keep working. They upgrade when they run data refresh from the TU
 
 1. Add rows to `v{x.xx}/tables/entities.json` with the new type
 2. Document the type's details fields in `$meta.typeSchemas`
-3. Add overlay entries in `v{x.xx}/overlays/entities/*.json`
-4. Run `node validate.mjs`
+3. Run `node validate.mjs`
+4. Regenerate checksums: `shasum -a 256 v{x.xx}/tables/*.json` and update `checksums.json`
 
 ## Adding a New Table
 
 1. Create `v{x.xx}/tables/{name}.json` with `$meta` (table, description, schema) and `rows`
 2. Add table name to `dataset.json` `tables` array
 3. Add any foreign key relations to `dataset.json` `relations` array (use `when` for polymorphic FKs)
-4. Create `v{x.xx}/overlays/{name}/public_base.json` with realistic names
-5. Run `node validate.mjs`
+4. Run `node validate.mjs`
+5. Regenerate checksums: `shasum -a 256 v{x.xx}/tables/*.json` and update `checksums.json`
 
-## Adding an Overlay
+## Overlays
 
-1. Create `v{x.xx}/overlays/{table}/public_{name}.json` or `v{x.xx}/overlays/{table}/private_{client}.json`
-2. Add overlay name to `dataset.json` `overlays` array
-3. Use `overrides` keyed by row ID — shallow merge per row
-4. Private overlays must have `clients` array in `$meta`
-5. Run `node validate.mjs`
-
-## Overlay Stacking Order
-
-`public_base` -> `public_{locale}` -> `private_{client}`
-
-Later overlays win on field conflicts within a row.
-
-## Runtime Overlay Model
-
-Overlays are applied at **runtime**, not at build time. All tables and overlays are stored in D1 as JSON blobs on the `seeds` table (`base_data` column). The worker reads from D1 and applies overlays per-request:
-
-```
-D1 seeds table (base_data JSON) → parseSeedData → mergeSeedTables → getSeedOverlays → applyOverlayStack → Serve
-
-Request → Determine overlay stack → Apply at runtime → Serve
-           └─ D1 shares table query by email/domain (defaults to empty stack if no match)
-```
-
-- **D1 shares** — query `shares` table by seed + email/domain to resolve overlay stack per user. If no matching share exists, defaults to an empty stack (no overlays).
-- Worker imports `applyOverlayStack()` from `@farmer1st/data` to merge overlays per table at request time.
+Overlays are managed in the platform repo (`@farmer1st-seeds/dev-platform`), not here. This package only contains base table data and checksums.
 
 ## Validation
 
@@ -180,7 +151,7 @@ node validate.mjs --version 1.00               # Validate specific version
 node validate.mjs --seed-dir /path/to/data     # Validate a seed's data copy
 ```
 
-6 checks: dataset consistency, schema completeness, ID uniqueness, foreign key integrity, relations consistency, overlay validity.
+5 checks: dataset consistency, schema completeness, ID uniqueness, foreign key integrity, relations consistency.
 
 ## Conventions
 

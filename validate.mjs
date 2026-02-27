@@ -188,46 +188,25 @@ for (const file of tableFiles) {
   report('Relations consistency', errors)
 }
 
-// --- Check 6: Overlay validity ---
+// --- Check 6: Checksums ---
 {
   const errors = []
-  const overlaysDir = join(dataDir, 'overlays')
-  if (existsSync(overlaysDir)) {
-    for (const entry of readdirSync(overlaysDir, { withFileTypes: true }).filter(e => e.isDirectory())) {
-      const tableName = entry.name
-      const tableOverlayDir = join(overlaysDir, tableName)
-
-      for (const file of readdirSync(tableOverlayDir).filter(f => f.endsWith('.json'))) {
-        const overlayData = JSON.parse(readFileSync(join(tableOverlayDir, file), 'utf8'))
-        const overlayName = file.replace('.json', '')
-
-        if (overlayName.startsWith('public_') && overlayData.$meta.visibility !== 'public') {
-          errors.push(`${tableName}/${file}: prefix says public, $meta says "${overlayData.$meta.visibility}"`)
-        }
-        if (overlayName.startsWith('private_') && overlayData.$meta.visibility !== 'private') {
-          errors.push(`${tableName}/${file}: prefix says private, $meta says "${overlayData.$meta.visibility}"`)
-        }
-
-        if (overlayData.$meta.visibility === 'private' && !overlayData.$meta.clients?.length) {
-          errors.push(`${tableName}/${file}: private overlay missing clients[]`)
-        }
-
-        if (tables[tableName]) {
-          const validIds = new Set(tables[tableName].rows.map(r => r.id))
-          for (const id of Object.keys(overlayData.overrides || {})) {
-            if (!validIds.has(id)) {
-              errors.push(`${tableName}/${file}: override "${id}" not in base table`)
-            }
-          }
-        }
-
-        if (overlayData.$meta.table !== tableName) {
-          errors.push(`${tableName}/${file}: $meta.table="${overlayData.$meta.table}" but in ${tableName}/`)
-        }
+  const checksumPath = join(dataDir, 'checksums.json')
+  if (existsSync(checksumPath)) {
+    // Verify checksums.json lists the same files as tables/
+    const checksums = JSON.parse(readFileSync(checksumPath, 'utf8'))
+    for (const file of tableFiles) {
+      if (!(file in checksums)) {
+        errors.push(`checksums.json missing entry for ${file}`)
+      }
+    }
+    for (const file of Object.keys(checksums)) {
+      if (!tableFiles.includes(file)) {
+        errors.push(`checksums.json has entry for ${file} but file not found`)
       }
     }
   }
-  report('Overlay validity', errors)
+  report('Checksums', errors)
 }
 
 // --- Summary ---

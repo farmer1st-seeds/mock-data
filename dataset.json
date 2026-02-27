@@ -10,6 +10,5 @@
     { "from": "memberships.sourceId", "to": "entities.id", "type": "many-to-one", "when": { "sourceType": "entity" } },
     { "from": "memberships.targetId", "to": "users.id", "type": "many-to-one", "when": { "targetType": "user" } },
     { "from": "memberships.targetId", "to": "entities.id", "type": "many-to-one", "when": { "targetType": "entity" } }
-  ],
-  "overlays": ["public_base", "public_kenya", "private_nestle"]
+  ]
 }

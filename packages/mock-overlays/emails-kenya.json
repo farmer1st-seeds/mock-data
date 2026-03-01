@@ -1,0 +1,26 @@
+{
+  "$meta": {
+    "name": "emails-kenya",
+    "group": "kenya",
+    "description": "Kenyan email addresses with local domains",
+    "visibility": "public",
+    "fields": ["email"]
+  },
+  "values": [
+    "njoroge.kariuki@globalfoods.com",
+    "kamau@highlandscoop.org",
+    "wanjiru.muthoni@gmail.com",
+    "kipchoge.bett@gmail.com",
+    "akinyi.otieno@gmail.com",
+    "njeri.muthoni@gmail.com",
+    "chebet.bett@gmail.com",
+    "odhiambo@lakeregion.org",
+    "atieno.omondi@gmail.com",
+    "mutua.kioko@gmail.com",
+    "aisha.kiptoo@globalfoods.com",
+    "mwangi.gitonga@gmail.com",
+    "nyokabi@continentalcommodities.com",
+    "onyango.ochieng@kalro.go.ke",
+    "wambui.muthoni@gmail.com"
+  ]
+}

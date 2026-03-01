@@ -74,16 +74,23 @@ mock-data/
       memberships.json
       checksums.json
       validate.mjs
-    mock-overlays/                  # @farmer1st-seeds/mock-overlays v2.0.0
+    mock-overlays/                  # @farmer1st-seeds/mock-overlays v3.0.0
       package.json
       validate.mjs
-      entities/                     # flat — overlays grouped by table
-        public_base.json
-        public_kenya.json
-        private_nestle.json
-      users/
-        public_base.json
-        public_kenya.json
+      first-names-base.json         # flat — one file per field+group
+      last-names-base.json
+      emails-base.json
+      phones-base.json
+      entity-names-base.json
+      entity-descriptions-base.json
+      first-names-kenya.json
+      last-names-kenya.json
+      emails-kenya.json
+      phones-kenya.json
+      entity-names-kenya.json
+      entity-descriptions-kenya.json
+      entity-names-nestle.json      # private — Nestle client
+      entity-descriptions-nestle.json
 ```
 
 ## Versioning
@@ -91,13 +98,27 @@ mock-data/
 Version comes from `package.json` (semver). No version directories — single flat layout.
 
 - **mock-data**: table files live at package root
-- **mock-overlays**: overlay files live in `{table}/` directories at package root
+- **mock-overlays**: overlay files live flat at package root (one per field+group)
 - Minor bumps: additive changes (new rows, new overlays, new fields)
 - Major bumps: breaking changes (removed rows, changed IDs, restructured tables)
 
 ## Overlays
 
-Overlays live in `packages/mock-overlays/` and are published as `@farmer1st-seeds/mock-overlays`. See `docs/overlays.md` for format, stacking, and validation details.
+Overlays live in `packages/mock-overlays/` and are published as `@farmer1st-seeds/mock-overlays`. Each overlay is a flat JSON file with a list of string values that replace one column across all matching tables. See `docs/overlays.md` for format, stacking, and validation details.
+
+### Overlay Format
+
+```json
+{
+  "$meta": { "name": "first-names-kenya", "group": "kenya", "fields": ["firstName"], "visibility": "public" },
+  "values": ["Njoroge", "Kamau", "Wanjiru", ...]
+}
+```
+
+- `fields`: column names this overlay applies to (across all tables)
+- `values`: flat string array — one value per row, assigned via deterministic shuffle
+- `group`: for console UI grouping (base, kenya, nestle)
+- Naming: `{field}-{group}.json` (e.g., `first-names-kenya.json`)
 
 ## Validation
 
@@ -109,7 +130,7 @@ node packages/mock-overlays/validate.mjs                   # Validate overlay fi
 
 Mock data: 6 checks (dataset consistency, schema completeness, ID uniqueness, FK integrity, relations consistency, checksums).
 
-Overlays: 4 checks (filename prefix, $meta.table match, private clients, override IDs exist).
+Overlays: 5 checks (filename matches name, visibility valid, fields array, values array, values >= row count).
 
 ## Conventions
 

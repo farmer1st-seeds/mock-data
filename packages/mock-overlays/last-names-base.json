@@ -1,0 +1,26 @@
+{
+  "$meta": {
+    "name": "last-names-base",
+    "group": "base",
+    "description": "Realistic last names matching membership roles",
+    "visibility": "public",
+    "fields": ["lastName"]
+  },
+  "values": [
+    "Martin",
+    "Asante",
+    "Osei",
+    "Dupont",
+    "Hassan",
+    "Osei",
+    "Dupont",
+    "Kone",
+    "Diallo",
+    "Okafor",
+    "Bello",
+    "Mwangi",
+    "Ndiaye",
+    "Kamau",
+    "Wanjiku"
+  ]
+}

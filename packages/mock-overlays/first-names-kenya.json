@@ -1,0 +1,26 @@
+{
+  "$meta": {
+    "name": "first-names-kenya",
+    "group": "kenya",
+    "description": "Kenyan first names — family members share surnames",
+    "visibility": "public",
+    "fields": ["firstName"]
+  },
+  "values": [
+    "Njoroge",
+    "Kamau",
+    "Wanjiru",
+    "Kipchoge",
+    "Akinyi",
+    "Njeri",
+    "Chebet",
+    "Odhiambo",
+    "Atieno",
+    "Mutua",
+    "Aisha",
+    "Mwangi",
+    "Nyokabi",
+    "Onyango",
+    "Wambui"
+  ]
+}

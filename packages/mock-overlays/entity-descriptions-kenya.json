@@ -1,0 +1,21 @@
+{
+  "$meta": {
+    "name": "entity-descriptions-kenya",
+    "group": "kenya",
+    "description": "Kenyan entity descriptions with local context",
+    "visibility": "public",
+    "fields": ["description"]
+  },
+  "values": [
+    "Coffee and macadamia farm in Kiambu County",
+    "Single-origin Nyeri AA coffee",
+    "Tea and maize in the Kericho highlands",
+    "Purple and black tea producer in Nandi County",
+    "Cocoa and cassava in Kisii County",
+    "Serves smallholders across Kiambu, Nyeri, and Kericho",
+    "Tea and cocoa cooperative for Nandi and Kisii producers",
+    "Kenyan food and beverage brand",
+    "Agricultural commodities trader based in Mombasa",
+    "Government agricultural extension and research"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "$meta": {
+    "name": "entity-descriptions-base",
+    "group": "base",
+    "description": "Realistic entity descriptions",
+    "visibility": "public",
+    "fields": ["description"]
+  },
+  "values": [
+    "Mixed coffee and maize farm in the highlands",
+    "Single-origin coffee producer",
+    "Tea and maize estate with experimental plots",
+    "Small-scale tea producer",
+    "Cocoa and cassava farm in the lowlands",
+    "Serves coffee and tea farmers in Region 1",
+    "Cooperative for tea and cocoa producers",
+    "International food & beverage company",
+    "Agricultural commodities trading",
+    "Government farm advisory program"
+  ]
+}

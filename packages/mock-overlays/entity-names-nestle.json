@@ -1,0 +1,22 @@
+{
+  "$meta": {
+    "name": "entity-names-nestle",
+    "group": "nestle",
+    "description": "Nestle-branded entity names for client demos",
+    "visibility": "private",
+    "clients": ["nestle"],
+    "fields": ["name"]
+  },
+  "values": [
+    "Nescafe Highlands Estate",
+    "Nestle Nyeri Farm",
+    "Nestle Tea Gardens",
+    "Nescafe Ridge Farm",
+    "Nestle Cocoa Source",
+    "Nescafe Farmers Trust",
+    "Nestle Tea Partners",
+    "Nestle East Africa",
+    "Nestle Commodity Services",
+    "Nestle Agricultural Extension"
+  ]
+}

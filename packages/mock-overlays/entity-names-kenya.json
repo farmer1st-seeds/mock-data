@@ -1,0 +1,21 @@
+{
+  "$meta": {
+    "name": "entity-names-kenya",
+    "group": "kenya",
+    "description": "Kenyan entity names with local counties and context",
+    "visibility": "public",
+    "fields": ["name"]
+  },
+  "values": [
+    "Kiambu Coffee Estate",
+    "Nyeri Highlands Farm",
+    "Kericho Tea Gardens",
+    "Nandi Hills Tea Farm",
+    "Kisii Cocoa Fields",
+    "Central Kenya Farmers Cooperative",
+    "Rift Valley Growers Union",
+    "Kenya Foods International",
+    "Mombasa Trade House",
+    "KALRO — Kenya Agricultural & Livestock Research"
+  ]
+}

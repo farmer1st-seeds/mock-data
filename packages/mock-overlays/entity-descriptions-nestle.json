@@ -1,0 +1,22 @@
+{
+  "$meta": {
+    "name": "entity-descriptions-nestle",
+    "group": "nestle",
+    "description": "Nestle-branded entity descriptions for client demos",
+    "visibility": "private",
+    "clients": ["nestle"],
+    "fields": ["description"]
+  },
+  "values": [
+    "Nescafe Plan coffee farm",
+    "Nestle sourcing farm in the highlands",
+    "Nestle tea production estate",
+    "Nescafe smallholder partner farm",
+    "Nestle cocoa sourcing farm",
+    "Nescafe Plan partner cooperative",
+    "Nestle tea sourcing cooperative",
+    "Nestle regional sourcing division",
+    "Nestle agricultural commodities division",
+    "Nestle farm advisory program"
+  ]
+}

@@ -2,51 +2,22 @@
 
 ## What Are Overlays
 
-Overlays are JSON files that override specific fields in base table rows. They allow the same underlying data to be presented differently depending on context — for example, using Kenyan names and locations for a Kenya demo, or client-branded entity names for a Nestle presentation.
+An overlay is a **list of string values** that replaces one column across all matching tables. It declares which field names it targets (e.g., `["firstName"]`), applies the same value list to every matching column in every table, and uses deterministic shuffle for assignment.
 
 Base table rows use generic placeholder data (e.g., "User One", "Farm A"). Overlays add realistic, context-appropriate values.
-
-## Naming Convention
-
-Overlay names follow the pattern `{visibility}_{identifier}`:
-
-| Pattern | Example | Description |
-|---------|---------|-------------|
-| `public_base` | `public_base` | Default realistic names, available to all |
-| `public_{locale}` | `public_kenya` | Locale-specific names, locations, context |
-| `private_{client}` | `private_nestle` | Client-branded names for specific demos |
-
-## File Structure
-
-Overlays are organized by table within a version directory:
-
-```
-packages/mock-overlays/v1.02/
-  users/
-    public_base.json        # Realistic names and emails for all users
-    public_kenya.json       # Kenyan names, +254 phones
-  entities/
-    public_base.json        # Realistic entity names and descriptions
-    public_kenya.json       # Kenyan locations, counties
-    private_nestle.json     # Nestle-branded cooperative and brand names
-```
-
-Each overlay file applies to one table. The same overlay name (e.g., `public_kenya`) can have files in multiple table directories.
 
 ## File Format
 
 ```json
 {
   "$meta": {
-    "table": "users",
-    "overlay": "kenya",
+    "name": "first-names-kenya",
+    "group": "kenya",
+    "description": "Kenyan first names — family members share surnames",
     "visibility": "public",
-    "description": "Kenyan names, +254 phones, local emails — family members share surnames"
+    "fields": ["firstName"]
   },
-  "overrides": {
-    "usr_002": { "firstName": "Kamau", "lastName": "Njoroge", "email": "kamau@highlandscoop.org" },
-    "usr_003": { "firstName": "Wanjiru", "lastName": "Muthoni", "email": "wanjiru.muthoni@gmail.com" }
-  }
+  "values": ["Njoroge", "Kamau", "Wanjiru", "Kipchoge", "Akinyi", "..."]
 }
 ```
 
@@ -54,161 +25,105 @@ Each overlay file applies to one table. The same overlay name (e.g., `public_ken
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `table` | Yes | Table this overlay applies to (must match directory name) |
-| `overlay` | Yes | Overlay identifier (matches filename without prefix) |
+| `name` | Yes | Overlay identifier — must match filename (without `.json`) |
+| `group` | No | UI grouping key (e.g., `base`, `kenya`, `nestle`) |
+| `description` | Yes | Human-readable description |
 | `visibility` | Yes | `public` or `private` |
-| `description` | Yes | Human-readable description of what this overlay provides |
+| `fields` | Yes | Column names this overlay applies to (across all tables) |
 | `clients` | If private | Array of client identifiers (e.g., `["nestle"]`) |
 
-### Overrides
+### Values
 
-The `overrides` object is keyed by row ID. Each value is a partial object — only the fields that differ from the base table need to be specified. Overrides are applied as a **shallow merge** per row.
+The `values` array is a flat list of strings. Each value replaces one row's field. Values are assigned via **deterministic shuffle** — the same overlay+table+field combination always produces the same assignment.
 
-Example — base row:
-```json
-{ "id": "usr_003", "firstName": "User", "lastName": "Three", "email": "user3@example.com", "phone": "+10000000003" }
-```
+**Requirement:** `values.length >= rows.length` for every matching table. If an overlay has fewer values than rows, materialization **fails** with a clear error.
 
-After `public_base` overlay:
-```json
-{ "id": "usr_003", "firstName": "Amina", "lastName": "Osei", "email": "amina.osei@gmail.com", "phone": "+233244000002" }
-```
+## Naming Convention
 
-After `public_base` then `public_kenya` overlay:
-```json
-{ "id": "usr_003", "firstName": "Wanjiru", "lastName": "Muthoni", "email": "wanjiru.muthoni@gmail.com", "phone": "+254722100002" }
-```
+Overlay filenames follow `{field-description}-{group}.json`:
 
-Note: `public_kenya` overrides all fields that `public_base` set, because it appears later in the stack.
+| Pattern | Example | Description |
+|---------|---------|-------------|
+| `*-base` | `first-names-base.json` | Default realistic values, available to all |
+| `*-kenya` | `first-names-kenya.json` | Kenya-specific values |
+| `*-nestle` | `entity-names-nestle.json` | Nestle-branded values (private) |
+
+## Materialization Flow
+
+1. Load seed tables
+2. For each overlay in the stack (in order):
+   - Find all table+column combos where column name matches any overlay field
+   - Check `values.length >= rows.length` for each matching table
+   - If insufficient: **FAIL** — report overlay name, table, field, values needed vs available
+   - Deterministically shuffle values (seeded by `overlayName:tableName:fieldName`)
+   - Assign shuffled values to rows positionally
+3. Later overlays overwrite earlier ones on the same fields
+4. Return materialized tables or error list
 
 ## Stacking Order
 
-Overlays are applied in order. Later overlays win on field conflicts within a row.
+Overlays are applied in order. Later overlays win on field conflicts.
 
-Standard order: `public_base` -> `public_{locale}` -> `private_{client}`
+Standard order: `base` group -> locale group (e.g., `kenya`) -> private group (e.g., `nestle`)
 
-Example stack for a Kenyan Nestle demo: `["public_base", "public_kenya", "private_nestle"]`
-
-Applied per-table:
-1. Start with base table rows
-2. Apply `public_base` overrides (realistic generic names)
-3. Apply `public_kenya` overrides (Kenyan names and locations)
-4. Apply `private_nestle` overrides (Nestle-branded entity names)
-
-Not every overlay has entries for every row. If an overlay has no override for a given row, that row is unchanged by that overlay.
-
-## Runtime vs Build-Time Application
-
-Overlays are **not** applied at build time. The full process:
-
-1. **Build time**: All tables and all overlays are copied into each seed's `data/` directory. Codegen produces `data-loader.ts` which imports everything.
-2. **Runtime**: The worker determines the overlay stack and applies it per-request using `applyOverlayStack()` from `@farmer1st/data`.
-
-```
-Overlay stack = D1 shares table query by email/domain (defaults to empty stack if no match)
+Example stack for a Kenyan Nestle demo:
+```json
+[
+  "first-names-base", "last-names-base", "emails-base", "phones-base",
+  "entity-names-base", "entity-descriptions-base",
+  "first-names-kenya", "last-names-kenya", "emails-kenya", "phones-kenya",
+  "entity-names-kenya", "entity-descriptions-kenya",
+  "entity-names-nestle", "entity-descriptions-nestle"
+]
 ```
 
-This means the same worker bundle can serve different overlay stacks to different users.
+## Current Overlays
 
-## Overlay Configuration
+### Base Group
 
-Overlay stacks are resolved from the D1 `shares` table by seed + target (email or domain). Overlays are managed via shares in the console. If no matching share exists, the overlay stack defaults to an empty array (no overlays applied).
+| Overlay | Fields | Values | Tables |
+|---------|--------|--------|--------|
+| `first-names-base` | firstName | 15 | users |
+| `last-names-base` | lastName | 15 | users |
+| `emails-base` | email | 15 | users |
+| `phones-base` | phone | 15 | users |
+| `entity-names-base` | name | 10 | entities |
+| `entity-descriptions-base` | description | 10 | entities |
 
-### Shares Query
-```sql
-SELECT overlays FROM shares
-WHERE seed = ? AND target_type = ? AND target = ? AND status = 'active'
-```
-Returns a JSON array of overlay names, e.g. `["public_base", "public_kenya", "private_nestle"]`.
+### Kenya Group
 
-## Current Overlays (v1.02)
+| Overlay | Fields | Values | Tables |
+|---------|--------|--------|--------|
+| `first-names-kenya` | firstName | 15 | users |
+| `last-names-kenya` | lastName | 15 | users |
+| `emails-kenya` | email | 15 | users |
+| `phones-kenya` | phone | 15 | users |
+| `entity-names-kenya` | name | 10 | entities |
+| `entity-descriptions-kenya` | description | 10 | entities |
 
-### public_base
+### Nestle Group (Private)
 
-Available for: `users`, `entities`
-
-Replaces placeholder names with realistic generic names. Applied to all 15 users and all 10 entities.
-
-| Example | Before | After |
-|---------|--------|-------|
-| `usr_001` | User One | Sophie Martin |
-| `farm_001` | Farm A | Sunrise Hills Coffee Estate |
-| `brand_001` | Brand X | Global Foods Corp |
-
-### public_kenya
-
-Available for: `users`, `entities`
-
-Localizes to Kenya — Kenyan names, +254 phone numbers, Kenyan counties for farm regions. Overrides most users (13 of 15, skipping usr_001 and usr_011 who are international staff) and key entities.
-
-| Example | Before (public_base) | After (public_kenya) |
-|---------|---------------------|---------------------|
-| `usr_003` | Amina Osei | Wanjiru Muthoni |
-| `farm_001` | Sunrise Hills Coffee Estate | Kiambu Coffee Estate |
-| `farm_001` details.region | Region 1 | Kiambu County |
-
-### private_nestle
-
-Available for: `entities` only
-
-Rebrands cooperatives and the brand entity with Nestle-specific names for client demos. Only 3 overrides.
-
-| ID | Before (public_base) | After (private_nestle) |
-|----|---------------------|----------------------|
-| `coop_001` | Highlands Farmers Cooperative | Nescafe Farmers Trust |
-| `coop_002` | Lake Region Growers Union | Nestle Tea Partners |
-| `brand_001` | Global Foods Corp | Nestle East Africa |
+| Overlay | Fields | Values | Tables |
+|---------|--------|--------|--------|
+| `entity-names-nestle` | name | 10 | entities |
+| `entity-descriptions-nestle` | description | 10 | entities |
 
 ## Adding a New Overlay
 
-### Step-by-step
+1. Create a JSON file at `packages/mock-overlays/{field-desc}-{group}.json`
+2. Add `$meta` with name, group, description, visibility, fields (+ clients if private)
+3. Add `values` array — must have at least as many values as the largest matching table
+4. Validate: `node packages/mock-overlays/validate.mjs`
 
-1. **Create the overlay file** in the appropriate version and table directory:
-   ```
-   packages/mock-overlays/v1.02/{table}/{visibility}_{name}.json
-   ```
+## Validation Rules
 
-2. **Add the `$meta` section**:
-   ```json
-   {
-     "$meta": {
-       "table": "users",
-       "overlay": "colombia",
-       "visibility": "public",
-       "description": "Colombian names and context"
-     },
-     "overrides": {}
-   }
-   ```
+- Filename (without `.json`) must match `$meta.name`
+- `$meta.visibility` must be `public` or `private`
+- Private overlays must have non-empty `clients` array
+- `$meta.fields` must be a non-empty array of strings
+- `values` must be a non-empty array
+- `values.length >= rows.length` for every matching base table
 
-3. **Add overrides** keyed by existing row IDs. Only include fields you want to change:
-   ```json
-   "overrides": {
-     "usr_003": { "firstName": "Maria", "lastName": "Rodriguez" }
-   }
-   ```
+## Legacy Overlay Names
 
-4. **For private overlays**, add the `clients` array:
-   ```json
-   "$meta": {
-     "visibility": "private",
-     "clients": ["acme-corp"]
-   }
-   ```
-
-5. **Register the overlay** in `dataset.json` under the `overlays` array:
-   ```json
-   "overlays": ["public_base", "public_kenya", "public_colombia", "private_nestle"]
-   ```
-
-6. **Validate**:
-   ```bash
-   node packages/mock-overlays/validate.mjs
-   ```
-
-### Validation Rules
-
-- Filename prefix (`public_`/`private_`) must match `$meta.visibility`
-- `$meta.table` must match the parent directory name
-- Private overlays must have a non-empty `clients` array
-- Override IDs must exist in the base table
+Old overlay names (`public_base`, `public_kenya`, `private_nestle`) are expanded to their new equivalents via `LEGACY_OVERLAY_MAP` in the platform code. Existing shares continue to work.

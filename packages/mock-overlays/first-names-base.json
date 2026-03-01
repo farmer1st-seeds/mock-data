@@ -1,0 +1,26 @@
+{
+  "$meta": {
+    "name": "first-names-base",
+    "group": "base",
+    "description": "Realistic first names matching membership roles",
+    "visibility": "public",
+    "fields": ["firstName"]
+  },
+  "values": [
+    "Sophie",
+    "Kwame",
+    "Amina",
+    "Jean",
+    "Fatima",
+    "David",
+    "Grace",
+    "Ibrahim",
+    "Marie",
+    "Samuel",
+    "Aisha",
+    "Peter",
+    "Cecile",
+    "Joseph",
+    "Esther"
+  ]
+}

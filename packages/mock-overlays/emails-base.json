@@ -1,0 +1,26 @@
+{
+  "$meta": {
+    "name": "emails-base",
+    "group": "base",
+    "description": "Realistic email addresses matching organizational roles",
+    "visibility": "public",
+    "fields": ["email"]
+  },
+  "values": [
+    "sophie.martin@globalfoods.com",
+    "kwame@highlandscoop.org",
+    "amina.osei@gmail.com",
+    "jean.dupont@gmail.com",
+    "fatima.hassan@gmail.com",
+    "david.osei@gmail.com",
+    "grace.dupont@gmail.com",
+    "ibrahim@lakeregion.org",
+    "marie.diallo@gmail.com",
+    "samuel.okafor@gmail.com",
+    "aisha.bello@globalfoods.com",
+    "peter.mwangi@gmail.com",
+    "cecile@continentalcommodities.com",
+    "joseph.kamau@agriext.gov.ke",
+    "esther.wanjiku@gmail.com"
+  ]
+}

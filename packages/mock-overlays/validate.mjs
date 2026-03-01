@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 /**
- * Validate overlay JSON files.
+ * Validate overlay JSON files (new flat format).
  * Run: node packages/mock-overlays/validate.mjs
  *
  * Checks:
- *   1. Filename prefix (public_/private_) matches $meta.visibility
- *   2. $meta.table matches parent directory name
- *   3. Private overlays have non-empty clients array
- *   4. Override IDs exist in corresponding base table
+ *   1. Filename matches $meta.name
+ *   2. $meta.visibility is valid; private overlays have non-empty clients
+ *   3. $meta.fields is a non-empty string array
+ *   4. values is a non-empty array
+ *   5. Values count >= max row count of matching tables (cross-ref with base data)
  */
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join, dirname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -27,104 +28,132 @@ console.log(bold('\nValidating overlays...\n'))
 const passed = []
 const failed = []
 
-// Discover all overlay files from flat table directories
-const overlayFiles = []
-const tableDirs = readdirSync(__dirname).filter(d => {
-  const p = join(__dirname, d)
-  try { return statSync(p).isDirectory() && !d.startsWith('.') && d !== 'node_modules' } catch { return false }
-})
-
-for (const tableDir of tableDirs) {
-  const tPath = join(__dirname, tableDir)
-  const files = readdirSync(tPath).filter(f => f.endsWith('.json'))
-  for (const file of files) {
-    overlayFiles.push({
-      path: join(tPath, file),
-      table: tableDir,
-      filename: file,
-    })
-  }
-}
+// Discover all overlay JSON files (flat — no subdirectories)
+const overlayFiles = readdirSync(__dirname)
+  .filter(f => f.endsWith('.json') && f !== 'package.json')
+  .map(f => ({
+    path: join(__dirname, f),
+    filename: f,
+    name: basename(f, '.json'),
+  }))
 
 if (overlayFiles.length === 0) {
   console.error(red('No overlay files found'))
   process.exit(1)
 }
 
-console.log(dim(`  Found ${overlayFiles.length} overlay files across ${tableDirs.length} tables\n`))
+console.log(dim(`  Found ${overlayFiles.length} overlay files\n`))
 
-// --- Check 1: Filename prefix matches $meta.visibility ---
-{
-  const errors = []
-  for (const f of overlayFiles) {
-    const data = JSON.parse(readFileSync(f.path, 'utf8'))
-    const visibility = data.$meta?.visibility
-    const prefix = f.filename.startsWith('public_') ? 'public' : f.filename.startsWith('private_') ? 'private' : null
-    if (!prefix) {
-      errors.push(`${f.table}/${f.filename}: filename must start with public_ or private_`)
-    } else if (prefix !== visibility) {
-      errors.push(`${f.table}/${f.filename}: prefix "${prefix}" != $meta.visibility "${visibility}"`)
-    }
+// Load base tables for row-count cross-reference
+const baseTables = {}
+try {
+  const datasetPath = join(mockDataDir, 'dataset.json')
+  const dataset = JSON.parse(readFileSync(datasetPath, 'utf8'))
+  for (const tableName of dataset.tables) {
+    const tablePath = join(mockDataDir, `${tableName}.json`)
+    try {
+      const table = JSON.parse(readFileSync(tablePath, 'utf8'))
+      baseTables[tableName] = table
+    } catch { /* skip missing tables */ }
   }
-  report('Filename prefix matches visibility', errors)
+} catch {
+  console.log(dim('  Warning: could not load base tables for row-count check\n'))
 }
 
-// --- Check 2: $meta.table matches parent directory ---
+// Parse all overlays up front
+const overlays = overlayFiles.map(f => {
+  const data = JSON.parse(readFileSync(f.path, 'utf8'))
+  return { ...f, data }
+})
+
+// --- Check 1: Filename matches $meta.name ---
 {
   const errors = []
-  for (const f of overlayFiles) {
-    const data = JSON.parse(readFileSync(f.path, 'utf8'))
-    const metaTable = data.$meta?.table
-    if (!metaTable) {
-      errors.push(`${f.table}/${f.filename}: missing $meta.table`)
-    } else if (metaTable !== f.table) {
-      errors.push(`${f.table}/${f.filename}: $meta.table "${metaTable}" != directory "${f.table}"`)
+  for (const o of overlays) {
+    const metaName = o.data.$meta?.name
+    if (!metaName) {
+      errors.push(`${o.filename}: missing $meta.name`)
+    } else if (metaName !== o.name) {
+      errors.push(`${o.filename}: $meta.name "${metaName}" != filename "${o.name}"`)
     }
   }
-  report('$meta.table matches directory', errors)
+  report('Filename matches $meta.name', errors)
 }
 
-// --- Check 3: Private overlays have non-empty clients ---
+// --- Check 2: Visibility is valid; private overlays have clients ---
 {
   const errors = []
-  for (const f of overlayFiles) {
-    const data = JSON.parse(readFileSync(f.path, 'utf8'))
-    if (data.$meta?.visibility === 'private') {
-      const clients = data.$meta?.clients
+  for (const o of overlays) {
+    const visibility = o.data.$meta?.visibility
+    if (visibility !== 'public' && visibility !== 'private') {
+      errors.push(`${o.filename}: $meta.visibility must be "public" or "private", got "${visibility}"`)
+    }
+    if (visibility === 'private') {
+      const clients = o.data.$meta?.clients
       if (!Array.isArray(clients) || clients.length === 0) {
-        errors.push(`${f.table}/${f.filename}: private overlay missing non-empty clients array`)
+        errors.push(`${o.filename}: private overlay missing non-empty clients array`)
       }
     }
   }
-  report('Private overlays have clients', errors)
+  report('Visibility valid, private has clients', errors)
 }
 
-// --- Check 4: Override IDs exist in base table ---
+// --- Check 3: $meta.fields is non-empty string array ---
 {
   const errors = []
-  for (const f of overlayFiles) {
-    const data = JSON.parse(readFileSync(f.path, 'utf8'))
-    const overrides = data.overrides || {}
-    const overrideIds = Object.keys(overrides)
-    if (overrideIds.length === 0) continue
-
-    // Resolve base table from sibling mock-data package
-    const baseTablePath = join(mockDataDir, `${f.table}.json`)
-    if (!existsSync(baseTablePath)) {
-      errors.push(`${f.table}/${f.filename}: base table not found at ../mock-data/${f.table}.json`)
-      continue
-    }
-
-    const baseTable = JSON.parse(readFileSync(baseTablePath, 'utf8'))
-    const validIds = new Set(baseTable.rows.map(r => r.id))
-
-    for (const id of overrideIds) {
-      if (!validIds.has(id)) {
-        errors.push(`${f.table}/${f.filename}: override ID "${id}" not found in base table`)
-      }
+  for (const o of overlays) {
+    const fields = o.data.$meta?.fields
+    if (!Array.isArray(fields) || fields.length === 0) {
+      errors.push(`${o.filename}: $meta.fields must be a non-empty array`)
+    } else if (fields.some(f => typeof f !== 'string')) {
+      errors.push(`${o.filename}: $meta.fields must contain only strings`)
     }
   }
-  report('Override IDs exist in base table', errors)
+  report('Fields is non-empty string array', errors)
+}
+
+// --- Check 4: values is non-empty array ---
+{
+  const errors = []
+  for (const o of overlays) {
+    const values = o.data.values
+    if (!Array.isArray(values) || values.length === 0) {
+      errors.push(`${o.filename}: values must be a non-empty array`)
+    }
+  }
+  report('Values is non-empty array', errors)
+}
+
+// --- Check 5: Values count >= max matching table row count ---
+{
+  const errors = []
+  if (Object.keys(baseTables).length === 0) {
+    console.log(`  ${dim('-')} Values >= row count ${dim('(skipped — no base tables loaded)')}`)
+  } else {
+    for (const o of overlays) {
+      const fields = o.data.$meta?.fields || []
+      const values = o.data.values || []
+
+      for (const [tableName, table] of Object.entries(baseTables)) {
+        const rows = table.rows || []
+        if (rows.length === 0) continue
+
+        // Check if any field in this overlay matches a column in this table
+        const sampleRow = rows[0]
+        const matchingFields = fields.filter(f => f in sampleRow)
+        if (matchingFields.length === 0) continue
+
+        if (values.length < rows.length) {
+          for (const field of matchingFields) {
+            errors.push(
+              `${o.filename}: needs ${rows.length} values for ${tableName}.${field}, has ${values.length}`
+            )
+          }
+        }
+      }
+    }
+    report('Values >= row count for matching tables', errors)
+  }
 }
 
 // --- Summary ---

@@ -1,0 +1,21 @@
+{
+  "$meta": {
+    "name": "entity-names-base",
+    "group": "base",
+    "description": "Realistic entity names for farms, cooperatives, brands, traders, and agencies",
+    "visibility": "public",
+    "fields": ["name"]
+  },
+  "values": [
+    "Sunrise Hills Coffee Estate",
+    "Green Valley Plantation",
+    "Highland Tea Gardens",
+    "Misty Ridge Tea Farm",
+    "Golden Cocoa Fields",
+    "Highlands Farmers Cooperative",
+    "Lake Region Growers Union",
+    "Global Foods Corp",
+    "Continental Commodities Ltd",
+    "National Agricultural Extension Service"
+  ]
+}

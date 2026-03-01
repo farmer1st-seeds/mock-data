@@ -1,10 +1,11 @@
 {
   "$meta": {
     "name": "emails-kenya",
-    "group": "kenya",
     "description": "Kenyan email addresses with local domains",
     "visibility": "public",
-    "fields": ["email"]
+    "fields": [
+      "email"
+    ]
   },
   "values": [
     "njoroge.kariuki@globalfoods.com",

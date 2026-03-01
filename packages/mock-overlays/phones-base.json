@@ -1,10 +1,11 @@
 {
   "$meta": {
     "name": "phones-base",
-    "group": "base",
     "description": "International phone numbers for base overlay",
     "visibility": "public",
-    "fields": ["phone"]
+    "fields": [
+      "phone"
+    ]
   },
   "values": [
     "+41794000001",

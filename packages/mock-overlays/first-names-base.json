@@ -1,10 +1,11 @@
 {
   "$meta": {
     "name": "first-names-base",
-    "group": "base",
     "description": "Realistic first names matching membership roles",
     "visibility": "public",
-    "fields": ["firstName"]
+    "fields": [
+      "firstName"
+    ]
   },
   "values": [
     "Sophie",

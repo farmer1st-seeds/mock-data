@@ -1,10 +1,11 @@
 {
   "$meta": {
     "name": "last-names-kenya",
-    "group": "kenya",
     "description": "Kenyan last names — family members share surnames",
     "visibility": "public",
-    "fields": ["lastName"]
+    "fields": [
+      "lastName"
+    ]
   },
   "values": [
     "Kariuki",

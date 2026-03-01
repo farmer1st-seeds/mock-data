@@ -1,10 +1,11 @@
 {
   "$meta": {
     "name": "entity-descriptions-kenya",
-    "group": "kenya",
     "description": "Kenyan entity descriptions with local context",
     "visibility": "public",
-    "fields": ["description"]
+    "fields": [
+      "description"
+    ]
   },
   "values": [
     "Coffee and macadamia farm in Kiambu County",

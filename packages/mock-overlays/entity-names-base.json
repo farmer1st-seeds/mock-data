@@ -1,10 +1,11 @@
 {
   "$meta": {
     "name": "entity-names-base",
-    "group": "base",
     "description": "Realistic entity names for farms, cooperatives, brands, traders, and agencies",
     "visibility": "public",
-    "fields": ["name"]
+    "fields": [
+      "name"
+    ]
   },
   "values": [
     "Sunrise Hills Coffee Estate",

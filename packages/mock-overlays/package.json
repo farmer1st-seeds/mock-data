@@ -1,6 +1,6 @@
 {
   "name": "@farmer1st-seeds/mock-overlays",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Overlay JSON files for Farmer1st Seeds mock data",
   "files": ["*.json", "validate.mjs"],
   "scripts": { "validate": "node validate.mjs" },

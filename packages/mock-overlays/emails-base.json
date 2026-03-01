@@ -1,10 +1,11 @@
 {
   "$meta": {
     "name": "emails-base",
-    "group": "base",
     "description": "Realistic email addresses matching organizational roles",
     "visibility": "public",
-    "fields": ["email"]
+    "fields": [
+      "email"
+    ]
   },
   "values": [
     "sophie.martin@globalfoods.com",

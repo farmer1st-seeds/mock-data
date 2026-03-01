@@ -1,10 +1,11 @@
 {
   "$meta": {
     "name": "first-names-kenya",
-    "group": "kenya",
     "description": "Kenyan first names — family members share surnames",
     "visibility": "public",
-    "fields": ["firstName"]
+    "fields": [
+      "firstName"
+    ]
   },
   "values": [
     "Njoroge",

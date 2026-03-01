@@ -1,10 +1,11 @@
 {
   "$meta": {
     "name": "entity-names-kenya",
-    "group": "kenya",
     "description": "Kenyan entity names with local counties and context",
     "visibility": "public",
-    "fields": ["name"]
+    "fields": [
+      "name"
+    ]
   },
   "values": [
     "Kiambu Coffee Estate",

@@ -1,11 +1,14 @@
 {
   "$meta": {
     "name": "entity-names-nestle",
-    "group": "nestle",
     "description": "Nestle-branded entity names for client demos",
     "visibility": "private",
-    "clients": ["nestle"],
-    "fields": ["name"]
+    "clients": [
+      "nestle"
+    ],
+    "fields": [
+      "name"
+    ]
   },
   "values": [
     "Nescafe Highlands Estate",

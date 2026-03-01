@@ -1,10 +1,11 @@
 {
   "$meta": {
     "name": "entity-descriptions-base",
-    "group": "base",
     "description": "Realistic entity descriptions",
     "visibility": "public",
-    "fields": ["description"]
+    "fields": [
+      "description"
+    ]
   },
   "values": [
     "Mixed coffee and maize farm in the highlands",

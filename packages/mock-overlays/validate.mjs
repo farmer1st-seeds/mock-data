@@ -10,11 +10,11 @@
  *   4. Override IDs exist in corresponding base table
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
-import { resolve, join, basename, dirname } from 'node:path'
+import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const mockRoot = resolve(__dirname, '../..')
+const mockDataDir = join(__dirname, '..', 'mock-data')
 
 // Colors
 const green = (s) => `\x1b[32m${s}\x1b[0m`
@@ -27,26 +27,22 @@ console.log(bold('\nValidating overlays...\n'))
 const passed = []
 const failed = []
 
-// Discover all overlay files across versions
+// Discover all overlay files from flat table directories
 const overlayFiles = []
-const versionDirs = readdirSync(__dirname).filter(d => d.startsWith('v') && statSync(join(__dirname, d)).isDirectory())
+const tableDirs = readdirSync(__dirname).filter(d => {
+  const p = join(__dirname, d)
+  try { return statSync(p).isDirectory() && !d.startsWith('.') && d !== 'node_modules' } catch { return false }
+})
 
-for (const vDir of versionDirs) {
-  const vPath = join(__dirname, vDir)
-  const tableDirs = readdirSync(vPath).filter(d => {
-    try { return readdirSync(join(vPath, d)).length > 0 } catch { return false }
-  })
-  for (const tableDir of tableDirs) {
-    const tPath = join(vPath, tableDir)
-    const files = readdirSync(tPath).filter(f => f.endsWith('.json'))
-    for (const file of files) {
-      overlayFiles.push({
-        path: join(tPath, file),
-        version: vDir,
-        table: tableDir,
-        filename: file,
-      })
-    }
+for (const tableDir of tableDirs) {
+  const tPath = join(__dirname, tableDir)
+  const files = readdirSync(tPath).filter(f => f.endsWith('.json'))
+  for (const file of files) {
+    overlayFiles.push({
+      path: join(tPath, file),
+      table: tableDir,
+      filename: file,
+    })
   }
 }
 
@@ -55,7 +51,7 @@ if (overlayFiles.length === 0) {
   process.exit(1)
 }
 
-console.log(dim(`  Found ${overlayFiles.length} overlay files across ${versionDirs.length} versions\n`))
+console.log(dim(`  Found ${overlayFiles.length} overlay files across ${tableDirs.length} tables\n`))
 
 // --- Check 1: Filename prefix matches $meta.visibility ---
 {
@@ -65,9 +61,9 @@ console.log(dim(`  Found ${overlayFiles.length} overlay files across ${versionDi
     const visibility = data.$meta?.visibility
     const prefix = f.filename.startsWith('public_') ? 'public' : f.filename.startsWith('private_') ? 'private' : null
     if (!prefix) {
-      errors.push(`${f.version}/${f.table}/${f.filename}: filename must start with public_ or private_`)
+      errors.push(`${f.table}/${f.filename}: filename must start with public_ or private_`)
     } else if (prefix !== visibility) {
-      errors.push(`${f.version}/${f.table}/${f.filename}: prefix "${prefix}" != $meta.visibility "${visibility}"`)
+      errors.push(`${f.table}/${f.filename}: prefix "${prefix}" != $meta.visibility "${visibility}"`)
     }
   }
   report('Filename prefix matches visibility', errors)
@@ -80,9 +76,9 @@ console.log(dim(`  Found ${overlayFiles.length} overlay files across ${versionDi
     const data = JSON.parse(readFileSync(f.path, 'utf8'))
     const metaTable = data.$meta?.table
     if (!metaTable) {
-      errors.push(`${f.version}/${f.table}/${f.filename}: missing $meta.table`)
+      errors.push(`${f.table}/${f.filename}: missing $meta.table`)
     } else if (metaTable !== f.table) {
-      errors.push(`${f.version}/${f.table}/${f.filename}: $meta.table "${metaTable}" != directory "${f.table}"`)
+      errors.push(`${f.table}/${f.filename}: $meta.table "${metaTable}" != directory "${f.table}"`)
     }
   }
   report('$meta.table matches directory', errors)
@@ -96,7 +92,7 @@ console.log(dim(`  Found ${overlayFiles.length} overlay files across ${versionDi
     if (data.$meta?.visibility === 'private') {
       const clients = data.$meta?.clients
       if (!Array.isArray(clients) || clients.length === 0) {
-        errors.push(`${f.version}/${f.table}/${f.filename}: private overlay missing non-empty clients array`)
+        errors.push(`${f.table}/${f.filename}: private overlay missing non-empty clients array`)
       }
     }
   }
@@ -112,10 +108,10 @@ console.log(dim(`  Found ${overlayFiles.length} overlay files across ${versionDi
     const overrideIds = Object.keys(overrides)
     if (overrideIds.length === 0) continue
 
-    // Resolve base table: ../../v{version}/tables/{table}.json
-    const baseTablePath = join(mockRoot, f.version, 'tables', `${f.table}.json`)
+    // Resolve base table from sibling mock-data package
+    const baseTablePath = join(mockDataDir, `${f.table}.json`)
     if (!existsSync(baseTablePath)) {
-      errors.push(`${f.version}/${f.table}/${f.filename}: base table not found at ${f.version}/tables/${f.table}.json`)
+      errors.push(`${f.table}/${f.filename}: base table not found at ../mock-data/${f.table}.json`)
       continue
     }
 
@@ -124,7 +120,7 @@ console.log(dim(`  Found ${overlayFiles.length} overlay files across ${versionDi
 
     for (const id of overrideIds) {
       if (!validIds.has(id)) {
-        errors.push(`${f.version}/${f.table}/${f.filename}: override ID "${id}" not found in base table`)
+        errors.push(`${f.table}/${f.filename}: override ID "${id}" not found in base table`)
       }
     }
   }

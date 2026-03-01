@@ -1,8 +1,8 @@
 {
   "name": "@farmer1st-seeds/mock-overlays",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Overlay JSON files for Farmer1st Seeds mock data",
-  "files": ["v1.00", "v1.02", "validate.mjs"],
+  "files": ["entities", "users", "validate.mjs"],
   "scripts": { "validate": "node validate.mjs" },
   "publishConfig": { "registry": "https://npm.pkg.github.com" },
   "repository": {

@@ -14,7 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: node validate.mjs
+      - run: node packages/mock-data/validate.mjs
 
   validate-overlays:
     name: Validate Overlays

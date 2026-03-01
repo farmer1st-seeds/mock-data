@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
  * Validate mock data quality.
- * Run: node validate.mjs                          (validate latest mock version)
- *      node validate.mjs --version 1.00           (validate specific version)
+ * Run: node validate.mjs                          (validate package root)
  *      node validate.mjs --seed-dir /path/to/data (validate a seed's data copy)
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -15,8 +14,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const args = process.argv.slice(2)
 const seedDirFlag = args.indexOf('--seed-dir')
 const seedDirPath = seedDirFlag !== -1 ? args[seedDirFlag + 1] : null
-const versionFlag = args.indexOf('--version')
-const versionArg = versionFlag !== -1 ? args[versionFlag + 1] : null
 
 const mockDir = resolve(__dirname)
 const datasetPath = join(mockDir, 'dataset.json')
@@ -35,15 +32,17 @@ if (seedDirPath) {
   dataDir = resolve(seedDirPath)
   label = `seed data at ${dataDir}`
 } else {
-  const version = versionArg ?? dataset.$meta.version
-  dataDir = join(mockDir, `v${version}`)
-  label = `mock v${version}`
+  dataDir = mockDir
+  label = 'mock data'
 }
 
 if (!existsSync(dataDir)) {
   console.error(`Data directory not found: ${dataDir}`)
   process.exit(1)
 }
+
+// Non-table JSON files to exclude when scanning for tables
+const EXCLUDED = new Set(['dataset.json', 'checksums.json', 'package.json', 'changelog.json'])
 
 // Colors
 const green = (s) => `\x1b[32m${s}\x1b[0m`
@@ -56,17 +55,11 @@ console.log(bold(`\nValidating ${label}...\n`))
 const passed = []
 const failed = []
 
-// Load tables
-const tablesDir = join(dataDir, 'tables')
-if (!existsSync(tablesDir)) {
-  console.error(red('tables/ directory not found'))
-  process.exit(1)
-}
-
+// Load tables from flat root (exclude non-table JSONs)
+const tableFiles = readdirSync(dataDir).filter(f => f.endsWith('.json') && !EXCLUDED.has(f))
 const tables = {}
-const tableFiles = readdirSync(tablesDir).filter(f => f.endsWith('.json'))
 for (const file of tableFiles) {
-  const data = JSON.parse(readFileSync(join(tablesDir, file), 'utf8'))
+  const data = JSON.parse(readFileSync(join(dataDir, file), 'utf8'))
   tables[file.replace('.json', '')] = data
 }
 
@@ -80,7 +73,7 @@ for (const file of tableFiles) {
   }
   for (const name of Object.keys(tables)) {
     if (!dataset.tables.includes(name)) {
-      errors.push(`File tables/${name}.json exists but not listed in dataset.json`)
+      errors.push(`File ${name}.json exists but not listed in dataset.json`)
     }
   }
   report('Dataset consistency', errors)
@@ -193,7 +186,6 @@ for (const file of tableFiles) {
   const errors = []
   const checksumPath = join(dataDir, 'checksums.json')
   if (existsSync(checksumPath)) {
-    // Verify checksums.json lists the same files as tables/
     const checksums = JSON.parse(readFileSync(checksumPath, 'utf8'))
     for (const file of tableFiles) {
       if (!(file in checksums)) {

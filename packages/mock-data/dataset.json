@@ -1,8 +1,7 @@
 {
   "$meta": {
-    "version": "1.02",
     "description": "Entity-membership model — users, entities, memberships",
-    "updatedAt": "2026-02-06"
+    "updatedAt": "2026-03-01"
   },
   "tables": ["users", "entities", "memberships"],
   "relations": [

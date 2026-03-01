@@ -1,8 +1,11 @@
 # Mock Data
 
-Central source of truth for all seed demo data. Published as `@farmer1st-seeds/mock-data` on GitHub Packages and consumed by the CLI and platform repo. Data is versioned — each version is a frozen snapshot.
+Central source of truth for all seed demo data. Two packages published on GitHub Packages:
 
-## Data Model (v1.02)
+- `@farmer1st-seeds/mock-data` — table JSON files (users, entities, memberships)
+- `@farmer1st-seeds/mock-overlays` — overlay JSON files (realistic names, regional data)
+
+## Data Model
 
 3 tables, universal relationship model:
 
@@ -39,15 +42,6 @@ entities ───────────┘     user↔entity, entity↔entity
 
 4 progressive roles: `member` < `viewer` < `editor` < `admin`
 
-| Role | Meaning |
-|------|---------|
-| `member` | Base association — belongs to, is part of |
-| `viewer` | Read-only access to target's data |
-| `editor` | Can modify target's data |
-| `admin` | Full control — manage members, settings |
-
-Seeds decide what each role unlocks in their API. These are conventions, not enforced.
-
 ### Membership Direction
 
 **"source has roles within target"**
@@ -59,120 +53,74 @@ brand_001 → coop_001 [viewer]        brand can view coop data
 usr_006 → usr_003 [member]           family association
 ```
 
-### Cascading Visibility
-
-Access follows the membership graph:
-
-```
-usr_011 (brand viewer)
-  └─ viewer in brand_001
-       └─ brand_001 is viewer in coop_001
-            └─ farm_001, farm_002, farm_003 are members of coop_001
-                 └─ each farm has admins, editors
-```
-
-Seeds implement the graph traversal. The mock data provides the edges.
-
 ### Polymorphic Foreign Keys
 
-`memberships.sourceId` and `memberships.targetId` point to either `users.id` or `entities.id` depending on `sourceType`/`targetType`. Relations in `dataset.json` use `when` clauses:
-
-```json
-{ "from": "memberships.sourceId", "to": "users.id", "when": { "sourceType": "user" } }
-```
+`memberships.sourceId` and `memberships.targetId` point to either `users.id` or `entities.id` depending on `sourceType`/`targetType`. Relations in `dataset.json` use `when` clauses.
 
 ## Structure
 
 ```
 mock-data/
-  dataset.json          # Version pointer, table registry, relations
-  changelog.json        # Version history
-  validate.mjs          # CLI — data quality checks
-  package.json          # @farmer1st-seeds/mock-data
-  docs/                 # Detailed documentation (repo-only, not published)
-  v1.00/                # Version 1.00 (frozen — old model)
-    tables/
-    checksums.json
-  v1.02/                # Version 1.02 (current — entity-membership model)
-    tables/
-      users.json
+  CLAUDE.md
+  docs/
+  .github/workflows/
+  packages/
+    mock-data/                      # @farmer1st-seeds/mock-data v3.0.0
+      package.json
+      dataset.json                  # table registry + relations (no version pointer)
+      changelog.json
+      users.json                    # flat — tables at package root
       entities.json
       memberships.json
-    checksums.json
-  packages/
-    mock-overlays/      # @farmer1st-seeds/mock-overlays — overlay JSON files
+      checksums.json
+      validate.mjs
+    mock-overlays/                  # @farmer1st-seeds/mock-overlays v2.0.0
       package.json
       validate.mjs
-      v1.00/            # Overlays for v1.00 tables
-      v1.02/            # Overlays for v1.02 tables
+      entities/                     # flat — overlays grouped by table
+        public_base.json
+        public_kenya.json
+        private_nestle.json
+      users/
+        public_base.json
+        public_kenya.json
 ```
 
 ## Versioning
 
-Versions use **x.xx format** (2 decimal places): `1.00`, `1.01`, `1.02`, ..., `2.00`.
+Version comes from `package.json` (semver). No version directories — single flat layout.
 
-- `dataset.json.$meta.version` points to the **latest** version (string, e.g. `"1.02"`)
-- Each version lives in `v{x.xx}/` with its own tables and checksums
-- Seeds track which version they're using via `mockData` in `seed.manifest.ts`
-- Seeds can pin to any available version or upgrade to latest
-- Minor bumps (`1.02` -> `1.03`): additive changes — new rows, new overlays, new fields
-- Major bumps (`1.xx` -> `2.00`): breaking changes — removed rows, changed IDs, restructured tables
-
-## Creating a New Version
-
-1. Copy the current version directory: `cp -r v1.02 v1.03`
-2. Make changes in `v1.03/` (add rows, tables, overlays, modify data)
-3. Bump `dataset.json.$meta.version` to `"1.03"`
-4. Add entry to `changelog.json` (mark `breaking: true` if rows removed or IDs changed)
-5. Run `node validate.mjs` to verify the new version
-
-Seeds on v1.02 keep working. They upgrade when they run data refresh from the TUI.
-
-## Adding a New Entity Type
-
-1. Add rows to `v{x.xx}/tables/entities.json` with the new type
-2. Document the type's details fields in `$meta.typeSchemas`
-3. Run `node validate.mjs`
-4. Regenerate checksums: `shasum -a 256 v{x.xx}/tables/*.json` and update `checksums.json`
-
-## Adding a New Table
-
-1. Create `v{x.xx}/tables/{name}.json` with `$meta` (table, description, schema) and `rows`
-2. Add table name to `dataset.json` `tables` array
-3. Add any foreign key relations to `dataset.json` `relations` array (use `when` for polymorphic FKs)
-4. Run `node validate.mjs`
-5. Regenerate checksums: `shasum -a 256 v{x.xx}/tables/*.json` and update `checksums.json`
+- **mock-data**: table files live at package root
+- **mock-overlays**: overlay files live in `{table}/` directories at package root
+- Minor bumps: additive changes (new rows, new overlays, new fields)
+- Major bumps: breaking changes (removed rows, changed IDs, restructured tables)
 
 ## Overlays
 
 Overlays live in `packages/mock-overlays/` and are published as `@farmer1st-seeds/mock-overlays`. See `docs/overlays.md` for format, stacking, and validation details.
 
-```bash
-node packages/mock-overlays/validate.mjs    # Validate all overlay files
-```
-
 ## Validation
 
 ```bash
-node validate.mjs                              # Validate latest mock version
-node validate.mjs --version 1.00               # Validate specific version
-node validate.mjs --seed-dir /path/to/data     # Validate a seed's data copy
+node packages/mock-data/validate.mjs                      # Validate mock tables
+node packages/mock-data/validate.mjs --seed-dir /path      # Validate a seed's data copy
+node packages/mock-overlays/validate.mjs                   # Validate overlay files
 ```
 
-5 checks: dataset consistency, schema completeness, ID uniqueness, foreign key integrity, relations consistency.
+Mock data: 6 checks (dataset consistency, schema completeness, ID uniqueness, FK integrity, relations consistency, checksums).
+
+Overlays: 4 checks (filename prefix, $meta.table match, private clients, override IDs exist).
 
 ## Conventions
 
 - IDs: `{prefix}_{NNN}` — usr_001, farm_001, coop_001, brand_001, mbr_001
 - Base table rows use placeholder names (User One, Farm A) — overlays add realistic names
 - `$meta.schema` is documentation only, not enforced by code
-- Versions use x.xx format (2 decimal places)
-- Never modify a frozen version after seeds have consumed it — create a new version instead
 - trader and agency entity types exist but are not actively used yet
 
 ## Related Repos
 
 | Repo | Description |
 |------|-------------|
-| `farmer1st-seeds/sdk` | CLI downloads this package during `farmer-seed setup` and `farmer-seed data pull` |
-| `farmer1st-seeds/platform` | Console/landing apps consume this as a devDependency for D1 bootstrap |
+| `farmer1st-seeds/sdk` | CLI downloads mock-data + mock-overlays during `farmer-seed setup` and `farmer-seed data pull` |
+| `farmer1st-seeds/platform` | Console/landing apps consume mock-data + mock-overlays as devDependencies for D1 bootstrap |

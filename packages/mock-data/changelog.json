@@ -1,5 +1,18 @@
 [
   {
+    "version": "3.0.0",
+    "date": "2026-03-01",
+    "breaking": true,
+    "description": "Flat package layout — tables at package root, no version directories",
+    "changes": [
+      "BREAKING: Removed version directories (v1.00/, v1.02/) — tables now at package root",
+      "BREAKING: Removed v1.00 data (legacy farms/cooperatives model, no consumers)",
+      "BREAKING: Removed $meta.version from dataset.json — version comes from package.json",
+      "Moved package to packages/mock-data/ within repo",
+      "Rewritten validate.mjs for flat layout"
+    ]
+  },
+  {
     "version": "2.0.0",
     "date": "2026-02-27",
     "breaking": true,

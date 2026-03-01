@@ -5,10 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'package.json'
-      - 'dataset.json'
-      - 'changelog.json'
-      - 'v*/**'
+      - 'packages/mock-data/**'
   workflow_dispatch:
 
 jobs:
@@ -26,12 +23,12 @@ jobs:
           registry-url: https://npm.pkg.github.com
 
       - name: Validate
-        run: node validate.mjs
+        run: node packages/mock-data/validate.mjs
 
       - name: Check if version changed
         id: check
         run: |
-          CURRENT=$(node -p "require('./package.json').version")
+          CURRENT=$(node -p "require('./packages/mock-data/package.json').version")
           PUBLISHED=$(npm view @farmer1st-seeds/mock-data version 2>/dev/null || echo "0.0.0")
           if [ "$CURRENT" != "$PUBLISHED" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
@@ -48,5 +45,6 @@ jobs:
       - name: Publish
         if: steps.check.outputs.changed == 'true'
         run: npm publish
+        working-directory: packages/mock-data
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

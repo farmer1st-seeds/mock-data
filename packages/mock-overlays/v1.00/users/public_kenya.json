@@ -1,0 +1,19 @@
+{
+  "$meta": {
+    "table": "users",
+    "overlay": "kenya",
+    "visibility": "public",
+    "description": "Kenyan names, +254 phone numbers, local context"
+  },
+  "overrides": {
+    "usr_003": { "firstName": "Wanjiru", "lastName": "Muthoni", "phone": "+254712345001" },
+    "usr_004": { "firstName": "Kipchoge", "lastName": "Bett", "phone": "+254712345002" },
+    "usr_005": { "firstName": "Akinyi", "lastName": "Otieno", "phone": "+254712345003" },
+    "usr_007": { "firstName": "Njeri", "lastName": "Kariuki", "phone": "+254712345004" },
+    "usr_008": { "firstName": "Odhiambo", "lastName": "Owino", "phone": "+254712345005" },
+    "usr_010": { "firstName": "Chebet", "lastName": "Ruto", "phone": "+254712345006" },
+    "usr_012": { "firstName": "Mutua", "lastName": "Kioko", "phone": "+254712345007" },
+    "usr_013": { "firstName": "Nyokabi", "lastName": "Gitonga", "phone": "+254712345008" },
+    "usr_015": { "firstName": "Wambui", "lastName": "Njoroge", "phone": "+254712345009" }
+  }
+}

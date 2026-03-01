@@ -1,0 +1,18 @@
+{
+  "$meta": {
+    "table": "entities",
+    "overlay": "kenya",
+    "visibility": "public",
+    "description": "Kenyan locations, counties, and local context"
+  },
+  "overrides": {
+    "farm_001": { "name": "Kiambu Coffee Estate", "description": "Coffee and macadamia farm in Kiambu County", "details": { "region": "Kiambu County", "size": 12, "crops": ["coffee", "macadamia"] } },
+    "farm_002": { "name": "Nyeri Highlands Farm", "description": "Single-origin Nyeri AA coffee", "details": { "region": "Nyeri County", "size": 8, "crops": ["coffee"] } },
+    "farm_003": { "name": "Kericho Tea Gardens", "description": "Tea and maize in the Kericho highlands", "details": { "region": "Kericho County", "size": 15, "crops": ["tea", "maize"] } },
+    "farm_004": { "name": "Nandi Hills Tea Farm", "description": "Purple and black tea producer", "details": { "region": "Nandi County", "size": 6, "crops": ["tea"] } },
+    "farm_005": { "name": "Kisii Cocoa Fields", "description": "Cocoa and cassava in Kisii County", "details": { "region": "Kisii County", "size": 20, "crops": ["cocoa", "cassava"] } },
+    "coop_001": { "name": "Central Kenya Farmers Cooperative", "description": "Serves smallholders across Kiambu, Nyeri, and Kericho" },
+    "coop_002": { "name": "Rift Valley Growers Union", "description": "Tea and cocoa cooperative for Nandi and Kisii producers" },
+    "agency_001": { "name": "KALRO — Kenya Agricultural & Livestock Research", "description": "Government agricultural extension and research" }
+  }
+}

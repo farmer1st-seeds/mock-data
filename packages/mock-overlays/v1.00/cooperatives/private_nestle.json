@@ -1,0 +1,14 @@
+{
+  "$meta": {
+    "table": "cooperatives",
+    "overlay": "nestle",
+    "visibility": "private",
+    "clients": ["nestle"],
+    "description": "Nestle-branded cooperative names and regions"
+  },
+  "overrides": {
+    "coop_001": { "name": "Nescafe Farmers Trust", "region": "Central Highlands" },
+    "coop_002": { "name": "Nestle Tea Partners", "region": "Western Highlands" },
+    "coop_005": { "name": "Nestle Grain Suppliers Network", "region": "Rift Valley" }
+  }
+}

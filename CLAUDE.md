@@ -99,9 +99,13 @@ mock-data/
       entities.json
       memberships.json
     checksums.json
+  packages/
+    mock-overlays/      # @farmer1st-seeds/mock-overlays — overlay JSON files
+      package.json
+      validate.mjs
+      v1.00/            # Overlays for v1.00 tables
+      v1.02/            # Overlays for v1.02 tables
 ```
-
-**Note**: Overlays have moved to the platform repo (`@farmer1st-seeds/dev-platform`). This package only contains tables and checksums.
 
 ## Versioning
 
@@ -141,7 +145,11 @@ Seeds on v1.02 keep working. They upgrade when they run data refresh from the TU
 
 ## Overlays
 
-Overlays are managed in the platform repo (`@farmer1st-seeds/dev-platform`), not here. This package only contains base table data and checksums.
+Overlays live in `packages/mock-overlays/` and are published as `@farmer1st-seeds/mock-overlays`. See `docs/overlays.md` for format, stacking, and validation details.
+
+```bash
+node packages/mock-overlays/validate.mjs    # Validate all overlay files
+```
 
 ## Validation
 

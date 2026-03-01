@@ -21,7 +21,7 @@ Overlay names follow the pattern `{visibility}_{identifier}`:
 Overlays are organized by table within a version directory:
 
 ```
-v1.02/overlays/
+packages/mock-overlays/v1.02/
   users/
     public_base.json        # Realistic names and emails for all users
     public_kenya.json       # Kenyan names, +254 phones
@@ -165,7 +165,7 @@ Rebrands cooperatives and the brand entity with Nestle-specific names for client
 
 1. **Create the overlay file** in the appropriate version and table directory:
    ```
-   db/mock/v1.02/overlays/{table}/{visibility}_{name}.json
+   packages/mock-overlays/v1.02/{table}/{visibility}_{name}.json
    ```
 
 2. **Add the `$meta` section**:
@@ -203,7 +203,7 @@ Rebrands cooperatives and the brand entity with Nestle-specific names for client
 
 6. **Validate**:
    ```bash
-   node db/mock/validate.mjs
+   node packages/mock-overlays/validate.mjs
    ```
 
 ### Validation Rules

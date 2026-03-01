@@ -1,0 +1,50 @@
+name: Publish Mock Overlays
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/mock-overlays/**'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish Mock Overlays
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: https://npm.pkg.github.com
+
+      - name: Validate
+        run: node packages/mock-overlays/validate.mjs
+
+      - name: Check if version changed
+        id: check
+        run: |
+          CURRENT=$(node -p "require('./packages/mock-overlays/package.json').version")
+          PUBLISHED=$(npm view @farmer1st-seeds/mock-overlays version 2>/dev/null || echo "0.0.0")
+          if [ "$CURRENT" != "$PUBLISHED" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "version=$CURRENT" >> $GITHUB_OUTPUT
+            echo "Publishing @farmer1st-seeds/mock-overlays@$CURRENT (was $PUBLISHED)"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "version=$CURRENT" >> $GITHUB_OUTPUT
+            echo "Version $CURRENT already published, skipping"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish
+        if: steps.check.outputs.changed == 'true'
+        run: npm publish
+        working-directory: packages/mock-overlays
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

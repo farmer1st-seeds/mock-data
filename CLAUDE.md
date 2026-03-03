@@ -74,7 +74,7 @@ mock-data/
       memberships.json
       checksums.json
       validate.mjs
-    mock-overlays/                  # @farmer1st-seeds/mock-overlays v3.0.0
+    mock-overlays/                  # @farmer1st-seeds/mock-overlays v4.0.1
       package.json
       validate.mjs
       first-names-base.json         # flat — one file per field+group

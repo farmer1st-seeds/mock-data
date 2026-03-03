@@ -1,135 +1,54 @@
 # API Reference
 
-Functions exported from `db/mock/_lib/data.mjs`. These are used by the TUI, validation CLI, and seed scaffolding scripts.
+## No JavaScript API
 
-## Constants
-
-### `MOCK_DIR`
+`@farmer1st-seeds/mock-data` is a **pure data package**. It contains only JSON files and exports no JavaScript functions. Consume it by importing or reading the JSON files directly.
 
 ```javascript
-export const MOCK_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+// Example: reading mock data from node_modules
+import dataset from '@farmer1st-seeds/mock-data/dataset.json' assert { type: 'json' }
+import users from '@farmer1st-seeds/mock-data/users.json' assert { type: 'json' }
 ```
 
-Absolute path to the `db/mock/` directory. Computed relative to `_lib/data.mjs`.
+Or read files from disk:
 
-## Functions
-
-### resolveMockVersion(version?)
-
-Resolve the directory path for a mock data version.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `version` | `string?` | `undefined` | Version in x.xx format. If omitted, uses latest from `dataset.json` |
-
-**Returns:** `{ dir: string, version: string, dataset: object }`
-
-| Field | Description |
-|-------|-------------|
-| `dir` | Absolute path to the version directory (e.g., `.../db/mock/v1.02`) |
-| `version` | Resolved version string (e.g., `"1.02"`) |
-| `dataset` | Parsed contents of `dataset.json` |
-
-**Throws:** `Error` if the version directory does not exist.
-
-**Example:**
 ```javascript
-const { dir, version } = resolveMockVersion()       // latest
-const { dir } = resolveMockVersion('1.00')           // specific version
+import { readFileSync } from 'node:fs'
+
+const users = JSON.parse(readFileSync('node_modules/@farmer1st-seeds/mock-data/users.json', 'utf8'))
 ```
 
----
+## Validation Script
 
-### listMockVersions()
+Each package includes a standalone `validate.mjs` CLI script for checking data integrity. These are not importable libraries — they are meant to be run directly.
 
-List all available mock data versions.
+### mock-data
 
-**Parameters:** None
-
-**Returns:** `string[]` — sorted array of version strings (e.g., `["1.00", "1.02"]`)
-
-Scans the `db/mock/` directory for subdirectories matching the pattern `v{digits}.{2 digits}` (e.g., `v1.00`, `v1.02`). Returns versions sorted by numeric value.
-
----
-
-### listAvailableOverlays()
-
-List all overlays in the latest mock version with metadata and sample data.
-
-**Parameters:** None
-
-**Returns:** `Array<{ name, tables, samples, visibility, clients?, description }>`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | `string` | Overlay name (e.g., `"public_base"`) |
-| `tables` | `string[]` | Tables this overlay has files for (e.g., `["users", "entities"]`) |
-| `samples` | `Array<{ id, table, field, value }>` | Sample override entries |
-| `visibility` | `string` | `"public"` or `"private"` |
-| `clients` | `string[]?` | Client identifiers (for private overlays) |
-| `description` | `string` | Human-readable description from `$meta` |
-
-Scans `overlays/` subdirectories in the latest version. Groups by overlay name across tables.
-
----
-
-### validateData(dataDir, relations?)
-
-Validate data quality for a version directory or seed data copy.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `dataDir` | `string` | (required) | Path to directory containing `tables/` and optionally `overlays/` |
-| `relations` | `object[]` | `[]` | Relations array from `dataset.json` |
-
-**Returns:** `{ passed: string[], failed: Array<{ check: string, errors: string[] }> }`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `passed` | `string[]` | Names of checks that passed |
-| `failed` | `Array<{ check, errors }>` | Failed checks with error messages |
-
-Runs 4 checks:
-1. **Schema completeness** — every non-nullable field present in every row
-2. **ID uniqueness** — no duplicate IDs within a table
-3. **Foreign key integrity** — all FK references point to valid rows (respects `when` clauses)
-4. **Overlay validity** — filename/meta consistency, override IDs exist, private overlays have clients
-
-**Example:**
-```javascript
-import { validateData, resolveMockVersion } from './db/mock/_lib/data.mjs'
-
-const mock = resolveMockVersion()
-const dataset = JSON.parse(readFileSync('db/mock/dataset.json', 'utf8'))
-const results = validateData(mock.dir, dataset.relations)
-
-if (results.failed.length === 0) {
-  console.log('All checks passed')
-}
+```bash
+node packages/mock-data/validate.mjs                      # Validate mock tables
+node packages/mock-data/validate.mjs --seed-dir /path      # Validate a seed's data copy
 ```
 
----
+### mock-overlays
 
-### loadMockInfo()
+```bash
+node packages/mock-overlays/validate.mjs                   # Validate overlay files
+```
 
-Load comprehensive mock data information for display (used by the TUI).
+## Package Contents
 
-**Parameters:** None
+### @farmer1st-seeds/mock-data
 
-**Returns:** `{ version, tables, overlays, relations, versions } | null`
+| File | Description |
+|------|-------------|
+| `dataset.json` | Table registry (table names, relations) |
+| `users.json` | User records |
+| `entities.json` | Entity records (farms, cooperatives, brands, etc.) |
+| `memberships.json` | Membership/relationship records |
+| `changelog.json` | Version history |
+| `checksums.json` | SHA256 hashes for table files |
+| `validate.mjs` | Standalone validation CLI script |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `version` | `string` | Current version from `dataset.json` |
-| `tables` | `Array<{ name, rows, schema, relations }>` | Table info with row counts and relation summaries |
-| `overlays` | `Array<...>` | Same as `listAvailableOverlays()` return |
-| `relations` | `object[]` | Raw relations from `dataset.json` |
-| `versions` | `string[]` | All available versions |
+### @farmer1st-seeds/mock-overlays
 
-Returns `null` if an error occurs (e.g., missing files).
-
-The `tables[].relations` field contains formatted strings like `"← users"` (incoming) and `"→ entities"` (outgoing), with counts for multiple relations (e.g., `"← users(2)"`).
+A separate package containing overlay JSON files (realistic names, regional data) and its own `validate.mjs` script. Overlay files follow the naming convention `{field}-{group}.json` (e.g., `first-names-kenya.json`).

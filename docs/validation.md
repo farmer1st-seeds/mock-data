@@ -2,22 +2,19 @@
 
 ## Overview
 
-`validate.mjs` is a CLI tool that checks mock data quality. It can validate a mock version directory or a seed's data copy. It runs 6 checks and exits with code 1 if any fail.
+`validate.mjs` is a CLI tool that checks mock data quality. It can validate the mock-data package or a seed's data copy. It runs 6 checks and exits with code 1 if any fail.
+
+Overlay validation is separate — see the mock-overlays section below.
 
 ## Usage
 
 ```bash
-# Validate the latest mock version (default)
-node db/mock/validate.mjs
-
-# Validate a specific version
-node db/mock/validate.mjs --version 1.00
+# Validate mock tables (default)
+node packages/mock-data/validate.mjs
 
 # Validate a seed's data copy
-node db/mock/validate.mjs --seed hello
+node packages/mock-data/validate.mjs --seed-dir /path/to/seed
 ```
-
-The TUI also provides validation via the `v` key on the Mock Data page, which calls the `validateData()` function from `_lib/data.mjs`.
 
 ## Checks
 
@@ -28,7 +25,7 @@ Verifies that `dataset.json` and the actual table files are in sync.
 | What it checks | Error example |
 |----------------|---------------|
 | Every table in `dataset.json` has a matching file | `Table "users" listed in dataset.json but no file found` |
-| Every table file is listed in `dataset.json` | `File tables/prices.json exists but not listed in dataset.json` |
+| Every table file is listed in `dataset.json` | `File prices.json exists but not listed in dataset.json` |
 
 ### 2. Schema Completeness
 
@@ -71,30 +68,28 @@ Verifies that relation fields referenced in `dataset.json` exist in table schema
 | `from` field exists in source table schema | `Relation field "sourceId" not in memberships schema` |
 | `to` field exists in target table schema | `Relation field "id" not in users schema` |
 
-### 6. Overlay Validity
+### 6. Checksum Registry
 
-Verifies overlay file correctness.
+Verifies file list completeness against `checksums.json`.
 
 | What it checks | Error example |
 |----------------|---------------|
-| Filename prefix matches `$meta.visibility` | `users/public_kenya.json: prefix says public, $meta says "private"` |
-| Private overlays have `clients[]` | `entities/private_nestle.json: private overlay missing clients[]` |
-| Override IDs exist in base table | `users/public_base.json: override "usr_999" not in base table` |
-| `$meta.table` matches directory name | `users/public_base.json: $meta.table="entities" but in users/` |
+| Every file in `checksums.json` exists on disk | `checksums.json lists "prices.json" but file not found` |
+| Every table file is listed in `checksums.json` | `File "users.json" exists but not in checksums.json` |
 
 ## Output Format
 
 Checks produce colored terminal output:
 
 ```
-Validating mock v1.02...
+Validating mock data...
 
-  [green checkmark] Dataset consistency
-  [green checkmark] Schema completeness
-  [green checkmark] ID uniqueness
-  [green checkmark] Foreign key integrity
-  [green checkmark] Relations consistency
-  [green checkmark] Overlay validity
+  [pass] Dataset consistency
+  [pass] Schema completeness
+  [pass] ID uniqueness
+  [pass] Foreign key integrity
+  [pass] Relations consistency
+  [pass] Checksum registry
 
 All 6 checks passed.
 ```
@@ -102,22 +97,20 @@ All 6 checks passed.
 On failure, up to 10 errors are shown per check, with a count of remaining errors:
 
 ```
-  [red X] Foreign key integrity
+  [fail] Foreign key integrity
     -> memberships.sourceId row mbr_001: "usr_999" not found in users
     -> ... and 3 more
 ```
 
-## Library Function
+## Overlay Validation
 
-The `validateData()` function in `_lib/data.mjs` provides a programmatic API for validation (used by the TUI). It runs 4 of the 6 checks (dataset consistency and relations consistency are CLI-only as they require `dataset.json` context):
+Overlay validation is a separate script in the mock-overlays package:
 
-```javascript
-import { validateData } from './db/mock/_lib/data.mjs'
-
-const results = validateData(dataDir, relations)
-// results.passed: string[]  — names of passed checks
-// results.failed: { check: string, errors: string[] }[]  — failed checks with errors
+```bash
+node packages/mock-overlays/validate.mjs
 ```
+
+This validates overlay file correctness: filename/meta consistency, visibility, fields array, values array length, etc.
 
 ## Common Errors and Fixes
 
@@ -127,7 +120,5 @@ const results = validateData(dataDir, relations)
 | `row X missing "field"` | Row is missing a required schema field | Add the field to the row, or mark it nullable with `?` in schema |
 | `duplicate "X"` | Two rows share the same ID | Change one of the duplicate IDs |
 | `"X" not found in Y` | Foreign key points to nonexistent row | Fix the reference or add the missing target row |
-| `prefix says public, $meta says "private"` | Filename/meta visibility mismatch | Rename the file or fix `$meta.visibility` |
-| `private overlay missing clients[]` | Private overlay without client list | Add `"clients": ["client-name"]` to `$meta` |
-| `override "X" not in base table` | Overlay references a row ID that doesn't exist | Fix the override key or add the row to the base table |
-| `$meta.table="X" but in Y/` | Overlay is in wrong directory or has wrong meta | Move the file or fix `$meta.table` |
+| `checksums.json lists "X" but file not found` | Checksum entry for missing file | Create the file or remove the entry from `checksums.json` |
+| `File "X" exists but not in checksums.json` | Table file missing from checksum registry | Run checksum generation or add the entry manually |

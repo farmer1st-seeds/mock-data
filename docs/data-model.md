@@ -2,7 +2,7 @@
 
 ## Overview
 
-The mock data uses an entity-membership model (introduced in v1.02). Three tables provide a universal relationship system: `users` for people, `entities` for organizations, and `memberships` as a universal join table with roles.
+The mock data uses an entity-membership model. Three tables provide a universal relationship system: `users` for people, `entities` for organizations, and `memberships` as a universal join table with roles.
 
 ## Tables
 
@@ -73,7 +73,7 @@ Universal join table for all relationships. Direction: **source has roles within
 
 Type schemas are documented in `entities.json` under `$meta.typeSchemas`.
 
-### Entities in v1.02
+### Entity List
 
 | ID | Type | Name (base) | Name (public_base overlay) |
 |----|------|-------------|---------------------------|
@@ -158,16 +158,16 @@ Seeds implement graph traversal logic. The mock data only provides the edges.
 
 ## dataset.json
 
-Registry file at the root of `db/mock/` that defines:
+Registry file at the package root (`packages/mock-data/dataset.json`) that defines:
 
 | Field | Description |
 |-------|-------------|
-| `$meta.version` | Current latest version (e.g., `"1.02"`) |
 | `$meta.description` | Human-readable description of the data model |
 | `$meta.updatedAt` | Last update date |
 | `tables` | Array of table names (e.g., `["users", "entities", "memberships"]`) |
 | `relations` | Array of foreign key relations with `from`, `to`, `type`, and optional `when` |
-| `overlays` | Array of overlay names (e.g., `["public_base", "public_kenya", "private_nestle"]`) |
+
+Note: `$meta.version` was removed in v3.0.0 -- version is now sourced from `package.json`. Overlays are a separate package (`@farmer1st-seeds/mock-overlays`) and are not referenced in this file.
 
 ## ID Conventions
 

@@ -158,7 +158,7 @@ Seeds implement graph traversal logic. The mock data only provides the edges.
 
 ## dataset.json
 
-Registry file at the package root (`packages/mock-data/dataset.json`) that defines:
+Registry file (`dataset.json`) that defines:
 
 | Field | Description |
 |-------|-------------|

@@ -5,7 +5,7 @@ Overlay JSON files for the Seeds ecosystem. Published on GitHub Packages as `@fa
 ## Structure
 
 ```
-mock-data/
+mock-overlays/
   CLAUDE.md
   docs/
   .github/workflows/

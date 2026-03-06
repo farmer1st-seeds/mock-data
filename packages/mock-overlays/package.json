@@ -7,7 +7,7 @@
   "publishConfig": { "registry": "https://npm.pkg.github.com" },
   "repository": {
     "type": "git",
-    "url": "https://github.com/farmer1st-seeds/mock-data.git",
+    "url": "https://github.com/farmer1st-seeds/mock-overlays.git",
     "directory": "packages/mock-overlays"
   }
 }
